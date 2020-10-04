@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-canvas',
@@ -6,6 +6,8 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
   styleUrls: ['./canvas.component.scss']
 })
 export class CanvasComponent implements OnInit {
+
+  character_x = 0;
 
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
@@ -18,8 +20,13 @@ export class CanvasComponent implements OnInit {
 
   ngAfterViewInit(): void {
     this.context = this.myCanvas.nativeElement.getContext('2d');
-    this.drawBackground();
-    this.drawCharacter();
+
+    setInterval( () => {
+      this.drawBackground();
+      this.updateCharacter();
+    }, 50);
+
+    this.drawGround();
   }
 
 
@@ -31,7 +38,6 @@ export class CanvasComponent implements OnInit {
       this.myCanvas.nativeElement.width,
       this.myCanvas.nativeElement.height
     );
-    //this.drawGround();
   }
 
   drawGround() {
@@ -40,13 +46,30 @@ export class CanvasComponent implements OnInit {
     this.context.fillRect(0, 640, canvas.width, canvas.height);
   }
 
-  drawCharacter() {
+  updateCharacter() {
     let base_image = new Image();
     base_image.src = 'assets/img/mexican.png';
     base_image.onload = () => {
-      this.context.drawImage(base_image, 0, 400, base_image.width * 0.35, base_image.height * 0.35);
+      this.context.drawImage(base_image, this.character_x, 400, base_image.width * 0.35, base_image.height * 0.35);
     };
   }
 
+  @HostListener('document:keydown',['$event'])
+  onKeyDown(e: KeyboardEvent) {
+    if (e.key === "ArrowLeft") {
+      this.character_x -= 5;
+    }
+    if (e.key == "ArrowRight") {
+      this.character_x += 5;
+    }
+  }
+
+  /*isArrowKey(e: KeyboardEvent){
+    if (e.key == "ArrowUp" || e.key == "ArrowDown") {
+      return true;
+    } else {
+      return false;
+    }
+  }*/
 
 }

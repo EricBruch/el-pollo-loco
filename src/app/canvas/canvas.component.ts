@@ -7,7 +7,11 @@ import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular
 })
 export class CanvasComponent implements OnInit {
 
-  character_x = 0;
+  character_x: number = 0;
+  bg_elements: number = 0;
+  isMovingRight: boolean = false;
+  isMovingLeft: boolean = false;
+
 
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
@@ -22,8 +26,11 @@ export class CanvasComponent implements OnInit {
     this.context = this.myCanvas.nativeElement.getContext('2d');
 
     setInterval( () => {
-      this.drawBackground();
+      //this.drawBackground();
+      this.drawBackgroundPicture();
       this.updateCharacter();
+      //this.drawGround();
+      
     }, 50);
 
     this.drawGround();
@@ -50,26 +57,45 @@ export class CanvasComponent implements OnInit {
     let base_image = new Image();
     base_image.src = 'assets/img/mexican.png';
     base_image.onload = () => {
-      this.context.drawImage(base_image, this.character_x, 400, base_image.width * 0.35, base_image.height * 0.35);
+      this.context.drawImage(base_image, this.character_x, 425, base_image.width * 0.35, base_image.height * 0.35);
+    };
+  }
+
+  drawBackgroundPicture(){
+    if (this.isMovingLeft) {
+      this.bg_elements += 2;
+    }
+    if (this.isMovingRight) {
+      this.bg_elements -= 2;
+    }
+    let canvas =  this.myCanvas.nativeElement;
+    let background_image = new Image();
+    background_image.src = 'assets/img/background_1.png';
+    background_image.onload = () => {
+      this.context.drawImage(background_image, this.bg_elements, 0, canvas.width, canvas.height);
     };
   }
 
   @HostListener('document:keydown',['$event'])
   onKeyDown(e: KeyboardEvent) {
     if (e.key === "ArrowLeft") {
-      this.character_x -= 5;
+      this.isMovingLeft = true;
+      this.character_x -= 10;
     }
     if (e.key == "ArrowRight") {
-      this.character_x += 5;
+      this.isMovingRight = true;
+      this.character_x += 10;
     }
   }
 
-  /*isArrowKey(e: KeyboardEvent){
-    if (e.key == "ArrowUp" || e.key == "ArrowDown") {
-      return true;
-    } else {
-      return false;
+  @HostListener('document:keyup',['$event'])
+  onKeyUp(e: KeyboardEvent) {
+    if (e.key === "ArrowLeft") {
+      this.isMovingLeft = false;
     }
-  }*/
+    if (e.key == "ArrowRight") {
+      this.isMovingRight = false;
+    }
+  }
 
 }

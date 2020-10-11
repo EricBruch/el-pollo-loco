@@ -17,14 +17,17 @@ export class CanvasComponent implements OnInit {
   bg_elements: number = 0;
   isMovingRight: boolean = false;
   isMovingLeft: boolean = false;
-  isJumping: boolean = false;
-  isFalling: boolean = false;
+  lastJumpStarted: number = 0;
 
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
   public context: CanvasRenderingContext2D;
   character_image = new Image();
   background_image = new Image();
+
+  //################################# Game Config ##################################
+  JUMP_TIME = 300; // in ms
+
 
   constructor() {}
 
@@ -54,13 +57,17 @@ export class CanvasComponent implements OnInit {
   }
 
   updateCharacter() {
-    if (this.isJumping) {
+    let timePassedSinceJump = new Date().getTime() - this.lastJumpStarted;
+
+    if (timePassedSinceJump < this.JUMP_TIME) {
       this.character_y -= 10;
-      if (this.character_y < 360) {
-        this.isFalling = true;
-        this.isJumping = false;
+    } else {
+      // Check falling
+      if (this.character_y < 425) {
+        this.character_y += 10;
       }
     }
+    // draw picture
     if (this.character_image.complete) {
       this.context.drawImage(
         this.character_image,
@@ -69,12 +76,6 @@ export class CanvasComponent implements OnInit {
         this.character_image.width * 0.35,
         this.character_image.height * 0.35
       );
-    }
-    if (this.isFalling) {
-      this.character_y += 10;
-      if (this.character_y > 425) {
-        this.isFalling = false;
-      }
     }
   }
 
@@ -107,8 +108,9 @@ export class CanvasComponent implements OnInit {
       this.isMovingRight = true;
       this.character_x += 10;
     }
-    if (e.code == 'Space' && !this.isFalling) {
-      this.isJumping = true;
+    let timePassedSinceJump = new Date().getTime() - this.lastJumpStarted;
+    if (e.code == 'Space' && timePassedSinceJump > (this.JUMP_TIME * 2)) {
+      this.lastJumpStarted = new Date().getTime();
     }
   }
 
@@ -120,8 +122,8 @@ export class CanvasComponent implements OnInit {
     if (e.key == 'ArrowRight') {
       this.isMovingRight = false;
     }
-    if (e.code == 'Space') {
-      this.isJumping = false;
-    }
+    // if (e.code == 'Space') {
+    //   this.isJumping = false;
+    // }
   }
 }

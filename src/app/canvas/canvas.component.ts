@@ -1,22 +1,30 @@
-import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
-  styleUrls: ['./canvas.component.scss']
+  styleUrls: ['./canvas.component.scss'],
 })
 export class CanvasComponent implements OnInit {
-
   character_x: number = 0;
+  character_y: number = 425;
   bg_elements: number = 0;
   isMovingRight: boolean = false;
   isMovingLeft: boolean = false;
-
+  isJumping: boolean = false;
+  isFalling: boolean = false;
 
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
-
   public context: CanvasRenderingContext2D;
+  character_image = new Image();
+  background_image = new Image();
 
   constructor() {}
 
@@ -24,78 +32,96 @@ export class CanvasComponent implements OnInit {
 
   ngAfterViewInit(): void {
     this.context = this.myCanvas.nativeElement.getContext('2d');
-
-    setInterval( () => {
-      //this.drawBackground();
-      this.drawBackgroundPicture();
-      this.updateCharacter();
-      //this.drawGround();
-      
-    }, 50);
-
-    this.drawGround();
+    this.loadResources();
+    this.draw();
   }
 
-
-  drawBackground() {
-    this.context.fillStyle = 'white';
-    this.context.fillRect(
-      0,
-      0,
-      this.myCanvas.nativeElement.width,
-      this.myCanvas.nativeElement.height
-    );
+  loadResources() {
+    this.character_image.src = 'assets/img/mexican.png';
+    this.background_image.src = 'assets/img/background_1.png';
   }
 
-  drawGround() {
-    let canvas = this.myCanvas.nativeElement;
-    this.context.fillStyle = 'rgba(255,230,153)';
-    this.context.fillRect(0, 640, canvas.width, canvas.height);
+  draw() {
+    this.drawBackgroundPicture();
+    this.updateCharacter();
+    let drawFunction = () => this.draw();
+
+    try {
+      requestAnimationFrame(drawFunction);
+    } catch (error) {
+      console.error('Graphic card error', error);
+    }
   }
 
   updateCharacter() {
-    let base_image = new Image();
-    base_image.src = 'assets/img/mexican.png';
-    base_image.onload = () => {
-      this.context.drawImage(base_image, this.character_x, 425, base_image.width * 0.35, base_image.height * 0.35);
-    };
+    if (this.isJumping) {
+      this.character_y -= 10;
+      if (this.character_y < 360) {
+        this.isFalling = true;
+        this.isJumping = false;
+      }
+    }
+    if (this.character_image.complete) {
+      this.context.drawImage(
+        this.character_image,
+        this.character_x,
+        this.character_y,
+        this.character_image.width * 0.35,
+        this.character_image.height * 0.35
+      );
+    }
+    if (this.isFalling) {
+      this.character_y += 10;
+      if (this.character_y > 425) {
+        this.isFalling = false;
+      }
+    }
   }
 
-  drawBackgroundPicture(){
+  drawBackgroundPicture() {
     if (this.isMovingLeft) {
       this.bg_elements += 2;
     }
     if (this.isMovingRight) {
       this.bg_elements -= 2;
     }
-    let canvas =  this.myCanvas.nativeElement;
-    let background_image = new Image();
-    background_image.src = 'assets/img/background_1.png';
-    background_image.onload = () => {
-      this.context.drawImage(background_image, this.bg_elements, 0, canvas.width, canvas.height);
-    };
+    let canvas = this.myCanvas.nativeElement;
+    if (this.background_image.complete) {
+      this.context.drawImage(
+        this.background_image,
+        this.bg_elements,
+        0,
+        canvas.width,
+        canvas.height
+      );
+    }
   }
 
-  @HostListener('document:keydown',['$event'])
+  @HostListener('document:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
-    if (e.key === "ArrowLeft") {
+    if (e.key === 'ArrowLeft') {
       this.isMovingLeft = true;
       this.character_x -= 10;
     }
-    if (e.key == "ArrowRight") {
+    if (e.key == 'ArrowRight') {
       this.isMovingRight = true;
       this.character_x += 10;
     }
+    if (e.code == 'Space' && !this.isFalling) {
+      this.isJumping = true;
+    }
   }
 
-  @HostListener('document:keyup',['$event'])
+  @HostListener('document:keyup', ['$event'])
   onKeyUp(e: KeyboardEvent) {
-    if (e.key === "ArrowLeft") {
+    if (e.key === 'ArrowLeft') {
       this.isMovingLeft = false;
     }
-    if (e.key == "ArrowRight") {
+    if (e.key == 'ArrowRight') {
       this.isMovingRight = false;
     }
+    if (e.code == 'Space') {
+      this.isJumping = false;
+    }
   }
-
 }

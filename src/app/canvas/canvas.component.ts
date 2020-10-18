@@ -5,7 +5,16 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { CHARACTER_STATUS, GAME_SPEED, JUMP_TIME } from './definition';
+import {
+  CHARACTER_STATUS,
+  GAME_SPEED,
+  JUMP_TIME,
+  characterIdle,
+  charachterLongIdle,
+  characterWalkLeft,
+  characterWalkRight,
+  characterJump,
+} from './constants';
 
 @Component({
   selector: 'app-canvas',
@@ -24,7 +33,8 @@ export class CanvasComponent implements OnInit {
   myCanvas: ElementRef<HTMLCanvasElement>;
   public context: CanvasRenderingContext2D;
   character_image = new Image();
-  currentCharacterImage: string = 'assets/img/animation/idle/I-1.png';
+  currentCharacterImage: string =
+    'assets/img/animation/idle/short_idle/I-1.png';
   background_image_1 = new Image();
   background_image_2 = new Image();
 
@@ -46,10 +56,15 @@ export class CanvasComponent implements OnInit {
   checkForRunning() {
     setInterval(() => {
       if (this.isMovingRight) {
-        if (this.currentCharacterImage == 'assets/img/animation/idle/I-1.png') {
-          this.currentCharacterImage = 'assets/img/animation/walk/right/W-R-1.png';
+        if (
+          this.currentCharacterImage ==
+          'assets/img/animation/idle/short_idle/I-1.png'
+        ) {
+          this.currentCharacterImage =
+            'assets/img/animation/walk/right/W-R-1.png';
         } else {
-          this.currentCharacterImage = 'assets/img/animation/idle/I-1.png';
+          this.currentCharacterImage =
+            'assets/img/animation/idle/short_idle/I-1.png';
         }
       }
     }, 200);

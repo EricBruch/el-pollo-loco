@@ -125,25 +125,18 @@ export class CanvasComponent implements OnInit {
   }
 
   drawBackgroundPicture() {
-    let canvas = this.myCanvas.nativeElement;
-    this.addBackgroundObject(
-      this.background_image_1,
-      0,
-      0,
-      canvas.width * 3,
-      canvas.height,
-      1,
-      1
-    );
-    this.addBackgroundObject(
-      this.background_image_1,
-      canvas.width * 3,
-      0,
-      canvas.width * 3,
-      canvas.height,
-      1,
-      1
-    );
+    for (let i = 0; i < 10; i += 3) {
+      let canvas = this.myCanvas.nativeElement;
+      this.addBackgroundObject(
+        this.background_image_1,
+        canvas.width * i,
+        0,
+        canvas.width * 3,
+        canvas.height,
+        1,
+        1
+      );
+    }
   }
 
   addBackgroundObject(obj, offset_x, offset_y, width, height, scale, opacity) {

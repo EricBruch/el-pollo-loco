@@ -10,12 +10,15 @@ import {
   WALK_SPEED,
   JUMP_TIME,
   JUMP_SPEED,
+  AUDIO_JUMP,
+  AUDIO_RUNNING,
   IDLE_ANIMATION_SWITCH,
   WALK_ANIMATION_SWITCH,
   X_COORDINATE_BASE_LEVEL,
   Y_COORDINATE_BASE_LEVEL,
-  charImgSrcs,
+  imgSrcs,
   MainCharacter,
+  Chicken,
   JUMP_ANIMATION_SWITCH,
   LANDING_ANIM_SWI,
 } from './constants';
@@ -36,21 +39,21 @@ export class CanvasComponent implements OnInit {
     lastIdleStarted: 0,
     lastWalkStarted: 0,
     characterImage: new Image(),
-    characterImageSrc: charImgSrcs.characterIdle[0],
+    characterImageSrc: imgSrcs.characterIdle[0],
     idleImg: 0,
     walkRightImg: 0,
     walkLeftImg: 0,
     jumpImg: 0,
   };
+
   bg_elements: number = 0;
-  isMovingRight: boolean = false;
-  isMovingLeft: boolean = false;
+  background_image = new Image();
+
+  chickens = [];
 
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
   public context: CanvasRenderingContext2D;
-  background_image_1 = new Image();
-  background_image_2 = new Image();
 
   constructor() {}
 
@@ -61,14 +64,25 @@ export class CanvasComponent implements OnInit {
     this.loadResources();
     this.draw();
   }
-
   loadResources() {
-    this.background_image_1.src = 'assets/img/Completo.png';
+    this.background_image.src = imgSrcs.bg_complete;
+    this.createChickens();
+    this.calculateChickenPosition();
+  }
+
+  createChickens() {
+    this.chickens = [
+      this.createChicken(imgSrcs.gallinita[1], 350),
+      this.createChicken(imgSrcs.gallinita[1], 2850),
+      this.createChicken(imgSrcs.gallinita[1], 3750),
+    ];
   }
 
   draw() {
     this.drawBackgroundPicture();
     this.updateCharacter();
+    this.drawChicken();
+    this.checkCollisionDetection();
     let drawFunction = () => this.draw();
     try {
       requestAnimationFrame(drawFunction);
@@ -100,6 +114,8 @@ export class CanvasComponent implements OnInit {
     switch (this.mainChar.charStatus) {
       case CHARACTER_STATUS.IDLE:
         this.updateIdleState();
+        AUDIO_RUNNING.pause();
+        AUDIO_JUMP.pause();
         break;
 
       /* TODO
@@ -110,25 +126,41 @@ export class CanvasComponent implements OnInit {
       */
 
       case CHARACTER_STATUS.WALK_RIGHT:
+        AUDIO_RUNNING.play();
         this.updateWalkRightState();
         break;
 
       case CHARACTER_STATUS.WALK_LEFT:
+        AUDIO_RUNNING.play();
         this.updateWalkLeftState();
         break;
 
       case CHARACTER_STATUS.JUMP:
+        AUDIO_RUNNING.pause();
         this.resetIdle();
         this.mainChar.isJumping = true;
         break;
     }
   }
 
+  checkCollisionDetection() {
+    //setInterval(() => {
+    this.chickens.forEach((c) => {
+      if (
+        c.pos_x - 120 < this.mainChar.x_coordinate &&
+        c.pos_x + 120 > this.mainChar.x_coordinate
+      ) {
+        alert('Collision');
+      }
+    });
+    //}, 50);
+  }
+
   drawBackgroundPicture() {
     for (let i = 0; i < 10; i += 3) {
       let canvas = this.myCanvas.nativeElement;
-      this.addBackgroundObject(
-        this.background_image_1,
+      this.addBGPicture(
+        this.background_image,
         canvas.width * i,
         0,
         canvas.width * 3,
@@ -139,18 +171,81 @@ export class CanvasComponent implements OnInit {
     }
   }
 
-  addBackgroundObject(obj, offset_x, offset_y, width, height, scale, opacity) {
+  calculateChickenPosition() {
+    setInterval(() => {
+      for (let i = 0; i < this.chickens.length; i++) {
+        let chicken = this.chickens[i];
+        chicken.pos_x -= this.chickens[i].speed;
+      }
+    }, 200);
+  }
+
+  addBgObject(
+    src: string,
+    offset_x: number,
+    offset_y: number,
+    scale: number,
+    opacity: number
+  ) {
+    if (opacity != undefined) {
+      this.context.globalAlpha = opacity;
+    }
+    let img = new Image();
+    img.src = src;
+    this.context.drawImage(
+      img,
+      offset_x + this.bg_elements,
+      offset_y,
+      img.width * scale,
+      img.height * scale
+    );
+    this.context.globalAlpha = 1;
+  }
+
+  addBGPicture(
+    img: HTMLImageElement,
+    offset_x: number,
+    offset_y: number,
+    width: number,
+    height: number,
+    scale: number,
+    opacity: number
+  ) {
     if (opacity != undefined) {
       this.context.globalAlpha = opacity;
     }
     this.context.drawImage(
-      obj,
+      img,
       offset_x + this.bg_elements,
       offset_y,
       width * scale,
       height * scale
     );
     this.context.globalAlpha = 1;
+  }
+
+  drawChicken() {
+    for (let i = 0; i < this.chickens.length; i++) {
+      this.addBgObject(
+        this.chickens[i].img,
+        this.chickens[i].pos_x,
+        this.chickens[i].pos_y,
+        this.chickens[i].scale,
+        this.chickens[i].opactiy
+      );
+    }
+  }
+
+  createChicken(src, pos_x) {
+    let x: Chicken = {
+      img: src,
+      pos_x: pos_x,
+      pos_y: 545,
+      scale: 0.5,
+      opactiy: 1,
+      speed: Math.random() * 15,
+    };
+    return x;
   }
 
   /**
@@ -161,10 +256,10 @@ export class CanvasComponent implements OnInit {
     let diff = new Date().getTime() - this.mainChar.lastIdleStarted;
     if (diff > IDLE_ANIMATION_SWITCH) {
       let src =
-        charImgSrcs.characterIdle[
+        imgSrcs.characterIdle[
           this.incrImgCount(
             ++this.mainChar.idleImg,
-            charImgSrcs.characterIdle.length
+            imgSrcs.characterIdle.length
           )
         ];
       this.mainChar.characterImageSrc = src;
@@ -184,7 +279,7 @@ export class CanvasComponent implements OnInit {
 
   performJumpAnimation(diffJumpAnim: number) {
     if (diffJumpAnim > JUMP_ANIMATION_SWITCH) {
-      let src = charImgSrcs.characterJump[this.incrJumpImgUpToFalling()];
+      let src = imgSrcs.characterJump[this.incrJumpImgUpToFalling()];
       this.mainChar.characterImageSrc = src;
       this.mainChar.lastJumpAnimationStarted = new Date().getTime();
     }
@@ -192,8 +287,8 @@ export class CanvasComponent implements OnInit {
 
   performLandingAnimation() {
     let src =
-      charImgSrcs.characterJump[
-        ++this.mainChar.jumpImg % charImgSrcs.characterJump.length
+      imgSrcs.characterJump[
+        ++this.mainChar.jumpImg % imgSrcs.characterJump.length
       ];
     this.mainChar.characterImageSrc = src;
   }
@@ -209,11 +304,39 @@ export class CanvasComponent implements OnInit {
     return this.mainChar.jumpImg > 6 && this.mainChar.jumpImg < 9;
   }
 
+  changeWalkAnimationDue(diff) {
+    return diff > WALK_ANIMATION_SWITCH;
+  }
+
+  changeRightWalkAnimation() {
+    let src =
+      imgSrcs.characterWalkRight[
+        this.incrImgCount(
+          this.mainChar.walkRightImg++,
+          imgSrcs.characterWalkRight.length
+        )
+      ];
+    this.mainChar.characterImageSrc = src;
+    this.mainChar.lastWalkStarted = new Date().getTime();
+  }
+
+  changeLeftWalkAnimation() {
+    let src =
+      imgSrcs.characterWalkLeft[
+        this.incrImgCount(
+          this.mainChar.walkLeftImg++,
+          imgSrcs.characterWalkLeft.length
+        )
+      ];
+    this.mainChar.characterImageSrc = src;
+    this.mainChar.lastWalkStarted = new Date().getTime();
+  }
+
   endJumpingState() {
     this.mainChar.isJumping = false;
     this.mainChar.jumpImg = 0;
     this.mainChar.charStatus = CHARACTER_STATUS.IDLE;
-    this.mainChar.characterImageSrc = charImgSrcs.characterIdle[0];
+    this.mainChar.characterImageSrc = imgSrcs.characterIdle[0];
   }
 
   resetIdle() {
@@ -230,16 +353,8 @@ export class CanvasComponent implements OnInit {
     this.bg_elements -= WALK_SPEED;
     if (!this.mainChar.isJumping) {
       let diff = new Date().getTime() - this.mainChar.lastWalkStarted;
-      if (diff > WALK_ANIMATION_SWITCH) {
-        let src =
-          charImgSrcs.characterWalkRight[
-            this.incrImgCount(
-              this.mainChar.walkRightImg++,
-              charImgSrcs.characterWalkRight.length
-            )
-          ];
-        this.mainChar.characterImageSrc = src;
-        this.mainChar.lastWalkStarted = new Date().getTime();
+      if (this.changeWalkAnimationDue(diff)) {
+        this.changeRightWalkAnimation();
       }
     }
   }
@@ -249,16 +364,8 @@ export class CanvasComponent implements OnInit {
     this.bg_elements += WALK_SPEED;
     if (!this.mainChar.isJumping) {
       let diff = new Date().getTime() - this.mainChar.lastWalkStarted;
-      if (diff > WALK_ANIMATION_SWITCH) {
-        let src =
-          charImgSrcs.characterWalkLeft[
-            this.incrImgCount(
-              this.mainChar.walkLeftImg++,
-              charImgSrcs.characterWalkLeft.length
-            )
-          ];
-        this.mainChar.characterImageSrc = src;
-        this.mainChar.lastWalkStarted = new Date().getTime();
+      if (this.changeWalkAnimationDue(diff)) {
+        this.changeLeftWalkAnimation();
       }
     }
   }
@@ -295,6 +402,7 @@ export class CanvasComponent implements OnInit {
     if (e.code == 'Space' && timePassedSinceJump > JUMP_TIME * 2) {
       this.mainChar.charStatus = CHARACTER_STATUS.JUMP;
       this.mainChar.lastJumpStarted = new Date().getTime();
+      AUDIO_JUMP.play();
     }
   }
 

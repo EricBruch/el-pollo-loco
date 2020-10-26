@@ -62,6 +62,7 @@ export class CanvasComponent implements OnInit {
   ngAfterViewInit(): void {
     this.context = this.myCanvas.nativeElement.getContext('2d');
     this.loadResources();
+    this.checkCollisionDetection();
     this.draw();
   }
   loadResources() {
@@ -82,7 +83,6 @@ export class CanvasComponent implements OnInit {
     this.drawBackgroundPicture();
     this.updateCharacter();
     this.drawChicken();
-    this.checkCollisionDetection();
     let drawFunction = () => this.draw();
     try {
       requestAnimationFrame(drawFunction);
@@ -144,7 +144,7 @@ export class CanvasComponent implements OnInit {
   }
 
   checkCollisionDetection() {
-    //setInterval(() => {
+    setInterval(() => {
     this.chickens.forEach((c) => {
       if (
         c.pos_x - 120 < this.mainChar.x_coordinate &&
@@ -153,7 +153,7 @@ export class CanvasComponent implements OnInit {
         alert('Collision');
       }
     });
-    //}, 50);
+    }, 100);
   }
 
   drawBackgroundPicture() {

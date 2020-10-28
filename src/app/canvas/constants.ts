@@ -104,6 +104,7 @@ export const imgSrcs = {
 /*                      */
 export type MainCharacter = {
     charStatus: string,
+    charEnergy: number,
     x_coordinate: number,
     y_coordinate: number,
     isJumping: boolean,

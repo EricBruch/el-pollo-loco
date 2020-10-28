@@ -31,6 +31,7 @@ import {
 export class CanvasComponent implements OnInit {
   mainChar: MainCharacter = {
     charStatus: CHARACTER_STATUS.IDLE,
+    charEnergy: 100,
     x_coordinate: X_COORDINATE_BASE_LEVEL,
     y_coordinate: Y_COORDINATE_BASE_LEVEL,
     isJumping: false,
@@ -73,7 +74,7 @@ export class CanvasComponent implements OnInit {
 
   createChickens() {
     this.chickens = [
-      this.createChicken(imgSrcs.gallinita[1], 350),
+      this.createChicken(imgSrcs.gallinita[1], 550),
       this.createChicken(imgSrcs.gallinita[1], 2850),
       this.createChicken(imgSrcs.gallinita[1], 3750),
     ];
@@ -83,6 +84,7 @@ export class CanvasComponent implements OnInit {
     this.drawBackgroundPicture();
     this.updateCharacter();
     this.drawChicken();
+    this.drawEnergyBar();
     let drawFunction = () => this.draw();
     try {
       requestAnimationFrame(drawFunction);
@@ -143,17 +145,33 @@ export class CanvasComponent implements OnInit {
     }
   }
 
+  drawEnergyBar() {
+    this.context.globalAlpha = 0.3;
+    this.context.fillStyle = 'blue';
+    this.context.fillRect(680, 15, 2 * this.mainChar.charEnergy, 30);
+
+    this.context.fillStyle = 'black';
+    this.context.fillRect(675, 10, 210, 40);
+    this.context.globalAlpha = 1;
+  }
+
   checkCollisionDetection() {
     setInterval(() => {
-    this.chickens.forEach((c) => {
-      if (
-        c.pos_x - 120 < this.mainChar.x_coordinate &&
-        c.pos_x + 120 > this.mainChar.x_coordinate
-      ) {
-        alert('Collision');
-      }
-    });
+      this.chickens.forEach((c) => {
+        let c_x = c.pos_x + this.bg_elements;
+        if (this.isInCollisionWithChicken(c_x)) {
+          this.mainChar.charEnergy--;
+        }
+      });
     }, 100);
+  }
+
+  isInCollisionWithChicken(chicken_x: number) {
+    return (
+      chicken_x - 60 < this.mainChar.x_coordinate &&
+      chicken_x + 60 > this.mainChar.x_coordinate &&
+      this.mainChar.y_coordinate > 220
+    );
   }
 
   drawBackgroundPicture() {
@@ -240,8 +258,8 @@ export class CanvasComponent implements OnInit {
     let x: Chicken = {
       img: src,
       pos_x: pos_x,
-      pos_y: 545,
-      scale: 0.5,
+      pos_y: 595,
+      scale: 0.3,
       opactiy: 1,
       speed: Math.random() * 15,
     };
@@ -296,6 +314,7 @@ export class CanvasComponent implements OnInit {
   isJumping(diffJump: number) {
     return diffJump < JUMP_TIME;
   }
+
   isFalling() {
     return this.mainChar.y_coordinate <= Y_COORDINATE_BASE_LEVEL;
   }

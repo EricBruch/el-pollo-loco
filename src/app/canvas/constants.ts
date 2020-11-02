@@ -2,7 +2,6 @@
 export const JUMP_TIME = 300;                           // in ms
 export const JUMP_SPEED = 10;
 export const JUMP_ANIMATION_SWITCH = JUMP_TIME / 8;     // 37,5 // in ms
-export const LANDING_ANIM_SWI = 35;                     // in ms
 export const WALK_SPEED = 7;
 export const IDLE_ANIMATION_SWITCH = 8000;              // in ms
 export const WALK_ANIMATION_SWITCH = 50;                // in ms
@@ -34,25 +33,7 @@ export const imgSrcs = {
         'assets/img/animation/walk/W-4.png',
         'assets/img/animation/walk/W-5.png'
     ],
-    characterWalkLeft:
-    [
-        'assets/img/animation/walk/left/W-L-21.png',
-        'assets/img/animation/walk/left/W-L-22.png',
-        'assets/img/animation/walk/left/W-L-23.png',
-        'assets/img/animation/walk/left/W-L-24.png',
-        'assets/img/animation/walk/left/W-L-25.png',
-        'assets/img/animation/walk/left/W-L-26.png'
-    ],
-    characterWalkRight:
-    [
-        'assets/img/animation/walk/right/W-R-1.png',
-        'assets/img/animation/walk/right/W-R-2.png',
-        'assets/img/animation/walk/right/W-R-3.png',
-        'assets/img/animation/walk/right/W-R-4.png',
-        'assets/img/animation/walk/right/W-R-5.png',
-        'assets/img/animation/walk/right/W-R-6.png'
-    ],
-    characterIdle:
+    charIdle:
     [
         'assets/img/animation/idle/short_idle/I-1.png',
         'assets/img/animation/idle/short_idle/I-2.png',
@@ -65,7 +46,7 @@ export const imgSrcs = {
         'assets/img/animation/idle/short_idle/I-9.png',
         'assets/img/animation/idle/short_idle/I-10.png'
     ],
-    charachterLongIdle:
+    charLongIdle:
     [
         'assets/img/animation/idle/long_idle/I-11.png',
         'assets/img/animation/idle/long_idle/I-12.png',
@@ -78,7 +59,7 @@ export const imgSrcs = {
         'assets/img/animation/idle/long_idle/I-19.png',
         'assets/img/animation/idle/long_idle/I-20.png'
     ],
-    characterJump:
+    charJump:
     [
         'assets/img/animation/jump/J-0.png',
         'assets/img/animation/jump/J-1.png',
@@ -125,8 +106,8 @@ export type MainCharacter = {
     lastJumpAnimationStarted: number,
     lastIdleStarted: number,
     lastWalkStarted: number,
-    characterImage: HTMLImageElement,
-    characterImageSrc: string,
+    charImage: HTMLImageElement,
+    charImageSrc: string,
     idleImg: number,
     walkImg: number,
     walkRightImg: number,

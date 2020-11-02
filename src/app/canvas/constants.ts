@@ -25,6 +25,15 @@ export const enum CHARACTER_STATUS {
 
 // ################################ Character Image Sources ################################
 export const imgSrcs = {
+    charWalk:
+    [
+        'assets/img/animation/walk/W-0.png',
+        'assets/img/animation/walk/W-1.png',
+        'assets/img/animation/walk/W-2.png',
+        'assets/img/animation/walk/W-3.png',
+        'assets/img/animation/walk/W-4.png',
+        'assets/img/animation/walk/W-5.png'
+    ],
     characterWalkLeft:
     [
         'assets/img/animation/walk/left/W-L-21.png',
@@ -71,15 +80,15 @@ export const imgSrcs = {
     ],
     characterJump:
     [
-        'assets/img/animation/jump/J-31.png',
-        'assets/img/animation/jump/J-32.png',
-        'assets/img/animation/jump/J-33.png',
-        'assets/img/animation/jump/J-34.png',
-        'assets/img/animation/jump/J-35.png',
-        'assets/img/animation/jump/J-36.png',
-        'assets/img/animation/jump/J-37.png',
-        'assets/img/animation/jump/J-38.png',
-        'assets/img/animation/jump/J-39.png'
+        'assets/img/animation/jump/J-0.png',
+        'assets/img/animation/jump/J-1.png',
+        'assets/img/animation/jump/J-2.png',
+        'assets/img/animation/jump/J-3.png',
+        'assets/img/animation/jump/J-4.png',
+        'assets/img/animation/jump/J-5.png',
+        'assets/img/animation/jump/J-6.png',
+        'assets/img/animation/jump/J-7.png',
+        'assets/img/animation/jump/J-8.png'
     ],
     bg_complete: 'assets/img/background/Completo.png',
     bg_1: 'assets/img/background/background_1.png',
@@ -107,7 +116,11 @@ export type MainCharacter = {
     charEnergy: number,
     x_coordinate: number,
     y_coordinate: number,
+    isIdle: boolean,
     isJumping: boolean,
+    isFalling: boolean,
+    isRunningRight: boolean,
+    isRunningLeft: boolean,
     lastJumpStarted: number,
     lastJumpAnimationStarted: number,
     lastIdleStarted: number,
@@ -115,6 +128,7 @@ export type MainCharacter = {
     characterImage: HTMLImageElement,
     characterImageSrc: string,
     idleImg: number,
+    walkImg: number,
     walkRightImg: number,
     walkLeftImg: number,
     jumpImg: number

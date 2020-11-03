@@ -6,7 +6,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import {
-  CHARACTER_STATUS,
   WALK_SPEED,
   JUMP_TIME,
   JUMP_SPEED,
@@ -20,6 +19,7 @@ import {
   MainCharacter,
   Chicken,
   JUMP_ANIMATION_SWITCH,
+  AUDIO_OPEN_BOTTLE,
 } from './constants';
 
 @Component({
@@ -29,7 +29,6 @@ import {
 })
 export class CanvasComponent implements OnInit {
   mainChar: MainCharacter = {
-    charStatus: CHARACTER_STATUS.IDLE,
     charEnergy: 100,
     x_coordinate: X_COORDINATE_BASE_LEVEL,
     y_coordinate: Y_COORDINATE_BASE_LEVEL,
@@ -49,12 +48,14 @@ export class CanvasComponent implements OnInit {
     walkRightImg: 0,
     walkLeftImg: 0,
     jumpImg: 0,
+    collBottles: 0,
   };
 
   bg_elements: number = 0;
   background_image = new Image();
 
   chickens = [];
+  placedBottles = [1000, 1700, 2500];
 
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
@@ -133,6 +134,7 @@ export class CanvasComponent implements OnInit {
     this.drawBackgroundPicture();
     this.updateCharacter();
     this.drawChicken();
+    this.drawBottles();
     this.drawEnergyBar();
     let drawFunction = () => this.draw();
     try {
@@ -140,6 +142,7 @@ export class CanvasComponent implements OnInit {
     } catch (error) {
       console.error('Graphic card error', error);
     }
+    this.drawItemOverview();
   }
 
   updateCharacter() {
@@ -176,26 +179,55 @@ export class CanvasComponent implements OnInit {
     this.context.globalAlpha = 1;
   }
 
+  drawItemOverview() {
+    this.context.font = '30px Kalam';
+    this.context.fillText('x' + this.mainChar.collBottles, 50, 55);
+    this.addNonMoveableObject(imgSrcs.bottles[0], -15, 0, 0.2, 1);
+  }
+
   mirrorImg() {
     this.context.save();
     this.context.scale(-1, 1);
   }
 
+  drawBottles() {
+    this.placedBottles.forEach((b) => {
+      let x = b.valueOf();
+      this.addBgObject(
+        imgSrcs.bottles[0],
+        x,
+        Y_COORDINATE_BASE_LEVEL + 312,
+        0.25,
+        1
+      );
+    });
+  }
+
   checkCollisionDetection() {
     setInterval(() => {
+      // check for chicken
       this.chickens.forEach((c) => {
         let c_x = c.pos_x + this.bg_elements;
-        if (this.isInCollisionWithChicken(c_x)) {
+        if (this.isInCollisionWith(c_x)) {
           this.mainChar.charEnergy--;
         }
       });
+      // check for tabasco
+      for (let i = 0; i < this.placedBottles.length; i++) {
+        let b_x = this.placedBottles[i].valueOf() + this.bg_elements;
+        if (this.isInCollisionWith(b_x)) {
+          this.placedBottles.splice(i, 1);
+          AUDIO_OPEN_BOTTLE.play();
+          this.mainChar.collBottles++;
+        }
+      }
     }, 100);
   }
 
-  isInCollisionWithChicken(chicken_x: number) {
+  isInCollisionWith(x: number) {
     return (
-      chicken_x - 60 < this.mainChar.x_coordinate &&
-      chicken_x + 60 > this.mainChar.x_coordinate &&
+      x - 60 < this.mainChar.x_coordinate &&
+      x + 60 > this.mainChar.x_coordinate &&
       this.mainChar.y_coordinate > 220
     );
   }
@@ -236,13 +268,43 @@ export class CanvasComponent implements OnInit {
     }
     let img = new Image();
     img.src = src;
-    this.context.drawImage(
-      img,
-      offset_x + this.bg_elements,
-      offset_y,
-      img.width * scale,
-      img.height * scale
-    );
+    if (img.complete) {
+      this.context.drawImage(
+        img,
+        offset_x + this.bg_elements,
+        offset_y,
+        img.width * scale,
+        img.height * scale
+      );
+    } else {
+      console.error('Img not fully loaded');
+    }
+    this.context.globalAlpha = 1;
+  }
+
+  addNonMoveableObject(
+    src: string,
+    offset_x: number,
+    offset_y: number,
+    scale: number,
+    opacity: number
+  ) {
+    if (opacity != undefined) {
+      this.context.globalAlpha = opacity;
+    }
+    let img = new Image();
+    img.src = src;
+    if (img.complete) {
+      this.context.drawImage(
+        img,
+        offset_x,
+        offset_y,
+        img.width * scale,
+        img.height * scale
+      );
+    } else {
+      console.error('Img not fully loaded');
+    }
     this.context.globalAlpha = 1;
   }
 
@@ -301,10 +363,7 @@ export class CanvasComponent implements OnInit {
     if (diff > IDLE_ANIMATION_SWITCH) {
       let src =
         imgSrcs.charIdle[
-          this.incrImgCount(
-            ++this.mainChar.idleImg,
-            imgSrcs.charIdle.length
-          )
+          this.incrImgCount(++this.mainChar.idleImg, imgSrcs.charIdle.length)
         ];
       this.mainChar.charImageSrc = src;
       this.mainChar.lastIdleStarted = new Date().getTime();
@@ -323,8 +382,7 @@ export class CanvasComponent implements OnInit {
 
   adjustJumpAnimation(diffJumpAnim: number) {
     if (diffJumpAnim > JUMP_ANIMATION_SWITCH && this.mainChar.jumpImg < 7) {
-      this.mainChar.charImageSrc =
-        imgSrcs.charJump[++this.mainChar.jumpImg];
+      this.mainChar.charImageSrc = imgSrcs.charJump[++this.mainChar.jumpImg];
       this.mainChar.lastJumpAnimationStarted = new Date().getTime();
     }
   }
@@ -346,9 +404,7 @@ export class CanvasComponent implements OnInit {
     let border = Y_COORDINATE_BASE_LEVEL - 0.05 * Y_COORDINATE_BASE_LEVEL;
     if (this.isLanding(border)) {
       let src =
-        imgSrcs.charJump[
-          ++this.mainChar.jumpImg % imgSrcs.charJump.length
-        ];
+        imgSrcs.charJump[++this.mainChar.jumpImg % imgSrcs.charJump.length];
       this.mainChar.charImageSrc = src;
     }
   }
@@ -451,7 +507,6 @@ export class CanvasComponent implements OnInit {
     let timePassedSinceJump =
       new Date().getTime() - this.mainChar.lastJumpStarted;
     if (e.code == 'Space' && timePassedSinceJump > JUMP_TIME * 2) {
-      this.mainChar.charStatus = CHARACTER_STATUS.JUMP;
       this.mainChar.lastJumpStarted = new Date().getTime();
       this.mainChar.isJumping = true;
       this.mainChar.isIdle = false;

@@ -5,13 +5,21 @@ export const JUMP_ANIMATION_SWITCH = JUMP_TIME / 8; // 37,5 // in ms
 export const WALK_SPEED = 7;
 export const IDLE_ANIMATION_SWITCH = 8000; // in ms
 export const WALK_ANIMATION_SWITCH = 50; // in ms
+export const GRAVITY = 9.81;
 
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
 
-export const AUDIO_RUNNING = new Audio('assets/audio/running.mp3');
-export const AUDIO_JUMP = new Audio('assets/audio/jump.mp3');
-export const AUDIO_OPEN_BOTTLE = new Audio('assets/audio/open_bottle.mp3');
+//############################# Audio Sounds ############################
+export const AUDIO = {
+  RUNNING: new Audio('assets/audio/running.mp3'),
+  JUMP: new Audio('assets/audio/jump.mp3'),
+  OPEN_BOTTLE: new Audio('assets/audio/open_bottle.mp3'),
+  THROW_BOTTLE: new Audio('assets/audio/throw_bottle.mp3'),
+  SMASH_BOTTLE: new Audio('assets/audio/smash_bottle.mp3'),
+  BG_MUSIC: new Audio('assets/audio/background_music.mp3'),
+  CHICKEN: new Audio('assets/audio/chicken.mp3')
+};
 
 //################################# Character state ###################################
 // Enum describes the States that the character can be in
@@ -22,7 +30,7 @@ export const enum CHARACTER_STATUS {
   WALK_RIGHT = 'WALK_RIGHT',
   JUMP = 'JUMP',
   HIT = 'HIT',
-}
+};
 
 // ################################ Character Image Sources ################################
 export const imgSrcs = {
@@ -89,6 +97,32 @@ export const imgSrcs = {
     'assets/img/background/objects/bottle/botella_left.png',
     'assets/img/background/objects/bottle/botella_right.png',
   ],
+  giantGallinitaWalk: [
+    'assets/img/enemies/giganton_gallinita/walk/G-walk-0.png',
+    'assets/img/enemies/giganton_gallinita/walk/G-walk-1.png',
+    'assets/img/enemies/giganton_gallinita/walk/G-walk-2.png',
+    'assets/img/enemies/giganton_gallinita/walk/G-walk-3.png'
+  ],
+  giantGallinitaAlert: [
+    'assets/img/enemies/giganton_gallinita/alert/G-Alert-0.png',
+    'assets/img/enemies/giganton_gallinita/alert/G-Alert-1.png',
+    'assets/img/enemies/giganton_gallinita/alert/G-Alert-2.png',
+    'assets/img/enemies/giganton_gallinita/alert/G-Alert-3.png',
+    'assets/img/enemies/giganton_gallinita/alert/G-Alert-4.png',
+    'assets/img/enemies/giganton_gallinita/alert/G-Alert-5.png',
+    'assets/img/enemies/giganton_gallinita/alert/G-Alert-6.png',
+    'assets/img/enemies/giganton_gallinita/alert/G-Alert-7.png'
+  ],
+  giantGallinitaAttacke: [
+    'assets/img/enemies/giganton_gallinita/attacke/G-Attack-0.png',
+    'assets/img/enemies/giganton_gallinita/attacke/G-Attack-1.png',
+    'assets/img/enemies/giganton_gallinita/attacke/G-Attack-2.png',
+    'assets/img/enemies/giganton_gallinita/attacke/G-Attack-3.png',
+    'assets/img/enemies/giganton_gallinita/attacke/G-Attack-4.png',
+    'assets/img/enemies/giganton_gallinita/attacke/G-Attack-5.png',
+    'assets/img/enemies/giganton_gallinita/attacke/G-Attack-6.png',
+    'assets/img/enemies/giganton_gallinita/attacke/G-Attack-7.png'
+  ]
 };
 
 /*                      */
@@ -113,6 +147,7 @@ export type MainCharacter = {
   walkLeftImg: number;
   jumpImg: number;
   collBottles: number;
+  lastBottleThrowTime: number;
 };
 
 export type Chicken = {
@@ -123,3 +158,9 @@ export type Chicken = {
   opactiy: number;
   speed: number;
 };
+
+export type Bottles = {
+  placedB: Array<number>,
+  throwB_X: number,
+  throwB_Y: number
+}

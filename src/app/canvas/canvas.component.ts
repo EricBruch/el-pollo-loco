@@ -9,17 +9,17 @@ import {
   WALK_SPEED,
   JUMP_TIME,
   JUMP_SPEED,
-  AUDIO_JUMP,
-  AUDIO_RUNNING,
   IDLE_ANIMATION_SWITCH,
   WALK_ANIMATION_SWITCH,
+  GRAVITY,
   X_COORDINATE_BASE_LEVEL,
   Y_COORDINATE_BASE_LEVEL,
   imgSrcs,
   MainCharacter,
   Chicken,
   JUMP_ANIMATION_SWITCH,
-  AUDIO_OPEN_BOTTLE,
+  AUDIO,
+  Bottles
 } from './constants';
 
 @Component({
@@ -48,14 +48,22 @@ export class CanvasComponent implements OnInit {
     walkRightImg: 0,
     walkLeftImg: 0,
     jumpImg: 0,
-    collBottles: 0,
+    collBottles: 50,
+    lastBottleThrowTime: 0,
   };
 
   bg_elements: number = 0;
   background_image = new Image();
 
   chickens = [];
-  placedBottles = [1000, 1700, 2500];
+
+  bottles: Bottles = {
+    placedB: [500, 1000, 1700, 2500, 2800, 3000, 3300],
+    throwB_X: 0,
+    throwB_Y: 0
+  }
+  
+  endbossEnergy = 100;
 
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
@@ -67,10 +75,12 @@ export class CanvasComponent implements OnInit {
 
   ngAfterViewInit(): void {
     this.context = this.myCanvas.nativeElement.getContext('2d');
+    this.loadResources();
+    this.initalizeSound();
+    // todo optional set const arrays frozen
     this.checkForRunning();
     this.checkForJump();
     this.checkForIdle();
-    this.loadResources();
     this.checkCollisionDetection();
     this.draw();
   }
@@ -112,11 +122,11 @@ export class CanvasComponent implements OnInit {
   }
 
   adjustAudioForJump() {
-    if (this.isInJumpProcess() && !AUDIO_RUNNING.paused) {
-      AUDIO_RUNNING.pause();
+    if (this.isInJumpProcess() && !AUDIO.RUNNING.paused) {
+      AUDIO.RUNNING.pause();
     }
-    if (!this.isInJumpProcess() && AUDIO_RUNNING.paused) {
-      AUDIO_RUNNING.play();
+    if (!this.isInJumpProcess() && AUDIO.RUNNING.paused) {
+      AUDIO.RUNNING.play();
     }
   }
 
@@ -143,6 +153,8 @@ export class CanvasComponent implements OnInit {
       console.error('Graphic card error', error);
     }
     this.drawItemOverview();
+    this.drawThrowBottle();
+    this.drawEndBoss();
   }
 
   updateCharacter() {
@@ -169,6 +181,11 @@ export class CanvasComponent implements OnInit {
     }
   }
 
+  initalizeSound() {
+    AUDIO.BG_MUSIC.loop = true;
+    AUDIO.BG_MUSIC.volume = 0.2;
+  }
+
   drawEnergyBar() {
     this.context.globalAlpha = 0.3;
     this.context.fillStyle = 'blue';
@@ -185,13 +202,42 @@ export class CanvasComponent implements OnInit {
     this.addNonMoveableObject(imgSrcs.bottles[0], -15, 0, 0.2, 1);
   }
 
+  drawThrowBottle() {
+    if (this.mainChar.lastBottleThrowTime) {
+      let timePassed = new Date().getTime() - this.mainChar.lastBottleThrowTime;
+      let g = Math.pow(GRAVITY, timePassed / 300);
+      this.bottles.throwB_X = 225 + timePassed * 0.9;
+      this.bottles.throwB_Y = 470 - (timePassed * 0.4 - g);
+      this.addNonMoveableObject(
+        imgSrcs.bottles[0],
+        this.bottles.throwB_X,
+        this.bottles.throwB_Y,
+        0.25,
+        1
+      );
+    }
+  }
+
+  drawEndBoss() {
+    this.context.globalAlpha = 0.3;
+    this.context.fillStyle = 'red';
+    this.context.fillRect(500, 260, 2 * this.endbossEnergy, 15);
+
+    this.context.fillStyle = 'black';
+    this.context.fillRect(495, 255, 210, 25);
+    this.context.globalAlpha = 1;
+
+    let endB_x = 500;
+    this.addBgObject(imgSrcs.giantGallinitaWalk[0],endB_x, 225, 0.4, 1);
+  }
+
   mirrorImg() {
     this.context.save();
     this.context.scale(-1, 1);
   }
 
   drawBottles() {
-    this.placedBottles.forEach((b) => {
+    this.bottles.placedB.forEach((b) => {
       let x = b.valueOf();
       this.addBgObject(
         imgSrcs.bottles[0],
@@ -213,14 +259,21 @@ export class CanvasComponent implements OnInit {
         }
       });
       // check for tabasco
-      for (let i = 0; i < this.placedBottles.length; i++) {
-        let b_x = this.placedBottles[i].valueOf() + this.bg_elements;
+      for (let i = 0; i < this.bottles.placedB.length; i++) {
+        let b_x = this.bottles.placedB[i].valueOf() + this.bg_elements;
         if (this.isInCollisionWith(b_x)) {
-          this.placedBottles.splice(i, 1);
-          AUDIO_OPEN_BOTTLE.play();
+          this.bottles.placedB.splice(i, 1);
+          AUDIO.OPEN_BOTTLE.play();
           this.mainChar.collBottles++;
         }
       }
+      // check for endboss
+      if (this.bottles.throwB_X > 500 + this.bg_elements - 100 && 
+        this.bottles.throwB_X < 500 + this.bg_elements + 100) {
+        this.endbossEnergy -= 10;
+        AUDIO.SMASH_BOTTLE.play();
+      } 
+      
     }, 100);
   }
 
@@ -277,7 +330,7 @@ export class CanvasComponent implements OnInit {
         img.height * scale
       );
     } else {
-      console.error('Img not fully loaded');
+      //console.error('Img not fully loaded');
     }
     this.context.globalAlpha = 1;
   }
@@ -303,7 +356,7 @@ export class CanvasComponent implements OnInit {
         img.height * scale
       );
     } else {
-      console.error('Img not fully loaded');
+      //console.error('Img not fully loaded');
     }
     this.context.globalAlpha = 1;
   }
@@ -487,22 +540,31 @@ export class CanvasComponent implements OnInit {
     this.resetIdle();
     this.mainChar.isIdle = true;
     this.mainChar.charImageSrc = imgSrcs.charIdle[0];
-    AUDIO_RUNNING.pause();
+    AUDIO.RUNNING.pause();
   }
 
   @HostListener('document:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
-    if (e.key === 'ArrowLeft') {
+    //console.log("key: " + e.key + " code: " + e.code);
+    if (
+      e.code === 'KeyD' &&
+      this.mainChar.collBottles > 0 &&
+      new Date().getTime() - this.mainChar.lastBottleThrowTime > 1000
+    ) {
+      this.mainChar.collBottles--;
+      this.mainChar.lastBottleThrowTime = new Date().getTime();
+      AUDIO.THROW_BOTTLE.play();
+    }
+
+    if (e.code === 'ArrowLeft') {
       this.mainChar.isRunningLeft = true;
       this.mainChar.isIdle = false;
-      AUDIO_RUNNING.play();
-      // this.mainChar.charStatus = CHARACTER_STATUS.WALK_LEFT;
+      AUDIO.RUNNING.play();
     }
-    if (e.key == 'ArrowRight') {
+    if (e.code == 'ArrowRight') {
       this.mainChar.isRunningRight = true;
       this.mainChar.isIdle = false;
-      AUDIO_RUNNING.play();
-      // this.mainChar.charStatus = CHARACTER_STATUS.WALK_RIGHT;
+      AUDIO.RUNNING.play();
     }
     let timePassedSinceJump =
       new Date().getTime() - this.mainChar.lastJumpStarted;
@@ -510,7 +572,7 @@ export class CanvasComponent implements OnInit {
       this.mainChar.lastJumpStarted = new Date().getTime();
       this.mainChar.isJumping = true;
       this.mainChar.isIdle = false;
-      AUDIO_JUMP.play();
+      AUDIO.JUMP.play();
     }
   }
 

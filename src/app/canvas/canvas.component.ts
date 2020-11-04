@@ -72,7 +72,48 @@ export class CanvasComponent implements OnInit {
   endbossImgSrc = IMG_SRCs.giantGallinitaWalk[0];
   endboss_X = BOSS_POSIT;
   endboss_Y = 225;
-
+/*
+  TODOs
+  * endboss objekt erstellen mit eigenem Type in constants ordner
+  * Endboss:
+  *   + Animation alert hinzufügen
+  *      # mit leichter Bewegung
+  *   + Animation attacke hinzufügen
+  *      # mit großer Bewegung
+  *   + Animation hurt hinzufügen wenn getroffen
+  *      # Idee für identifikation: 
+  *         Mit LastAnimationDate; undefined setzen für Abbruch
+  *   + Check das Jeder Flaschenwurd nur 1x mal Schaden ausführt.
+  *   + Check das Endgegner besiegt wird wenn Leben auf 0 oder weniger geht.
+  *   + Checken das die Lebensleiste nicht unter 0 geht
+  * + Sound für aufeinanderfolgenden Flaschenwurf abspielen
+  * + Check das Energieleiste des mainCharacter nicht unter 0 geht
+  * + diverse Energieleisten hinzufügen:
+  *   # Energieleiste für Tabasco
+  *   # Energieleiste für Münzen !!  Münzen im Allgemeinen  !!
+  *   # Energieleiste für Leben
+  * + Tabasco Flasche:
+  *   # splash animation der Flasche
+  *   # dreh Animation der Flasche beim werfen
+  * + Hintergrund:
+  *   # vor dem Anfang hinzufügen damit es nicht so weird ausschaut
+  * + verschiedene Hühner Formen einsetzen:
+  *   # Huhn 1 UND Huhn 2
+  * + Main Character:
+  *   # Long_Idle hinzufügen für wartenden Character
+  *   # Animation hurt hinzufügen
+  *   # Animation dead hinzufügen
+  * Frage an Junus:
+  *   Marcadorvida_enemy
+  *       --> Was ist der Kontext dafür? Ist das die lebensanzeige 
+  *           für normale Gegner
+  *   Coins sind einfach so zum einsammeln oder?
+  * -------------------------------------------------
+  * Gedanken zu weiteren Themen:
+  *   # Vollbildmodus
+  *   # 
+  *
+*/
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
   public context: CanvasRenderingContext2D;

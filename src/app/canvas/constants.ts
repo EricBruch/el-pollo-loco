@@ -6,6 +6,7 @@ export const WALK_SPEED = 7;
 export const IDLE_ANIMATION_SWITCH = 8000; // in ms
 export const WALK_ANIMATION_SWITCH = 50; // in ms
 export const GRAVITY = 9.81;
+export const BOSS_POSIT = 500;
 
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
@@ -33,7 +34,7 @@ export const enum CHARACTER_STATUS {
 }
 
 // ################################ Character Image Sources ################################
-export const imgSrcs = {
+export const IMG_SRCs = {
   charWalk: [
     'assets/img/character/walk/W-0.png',
     'assets/img/character/walk/W-1.png',
@@ -129,9 +130,9 @@ export const imgSrcs = {
     'assets/img/enemies/giganton_gallinita/hurt/G-hurt-2.png'
   ],
   giantGallinitaDeath: [
-    'src/assets/img/enemies/giganton_gallinita/death/G-death-0.png',
-    'src/assets/img/enemies/giganton_gallinita/death/G-death-1.png',
-    'src/assets/img/enemies/giganton_gallinita/death/G-death-2.png'
+    'assets/img/enemies/giganton_gallinita/death/G-death-0.png',
+    'assets/img/enemies/giganton_gallinita/death/G-death-1.png',
+    'assets/img/enemies/giganton_gallinita/death/G-death-2.png'
   ]
 };
 

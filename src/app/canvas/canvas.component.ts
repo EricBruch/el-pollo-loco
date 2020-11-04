@@ -12,14 +12,15 @@ import {
   IDLE_ANIMATION_SWITCH,
   WALK_ANIMATION_SWITCH,
   GRAVITY,
+  BOSS_POSIT,
   X_COORDINATE_BASE_LEVEL,
   Y_COORDINATE_BASE_LEVEL,
-  imgSrcs,
+  IMG_SRCs,
   MainCharacter,
   Chicken,
   JUMP_ANIMATION_SWITCH,
   AUDIO,
-  Bottles
+  Bottles,
 } from './constants';
 
 @Component({
@@ -42,7 +43,7 @@ export class CanvasComponent implements OnInit {
     lastIdleStarted: 0,
     lastWalkStarted: 0,
     charImage: new Image(),
-    charImageSrc: imgSrcs.charIdle[0],
+    charImageSrc: IMG_SRCs.charIdle[0],
     idleImg: 0,
     walkImg: 0,
     walkRightImg: 0,
@@ -60,10 +61,17 @@ export class CanvasComponent implements OnInit {
   bottles: Bottles = {
     placedB: [500, 1000, 1700, 2500, 2800, 3000, 3300],
     throwB_X: 0,
-    throwB_Y: 0
-  }
-  
+    throwB_Y: 0,
+  };
+
   endbossEnergy = 100;
+  endbossDefeatedAt = undefined;
+  endbossLastWalkAnimationAt = new Date().getTime();
+  endbossDeathImgNr = 0;
+  endbossWalkImgNr = 0;
+  endbossImgSrc = IMG_SRCs.giantGallinitaWalk[0];
+  endboss_X = BOSS_POSIT;
+  endboss_Y = 225;
 
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
@@ -82,10 +90,11 @@ export class CanvasComponent implements OnInit {
     this.checkForJump();
     this.checkForIdle();
     this.checkCollisionDetection();
+    this.checkForEndboss();
     this.draw();
   }
   loadResources() {
-    this.background_image.src = imgSrcs.bg_complete;
+    this.background_image.src = IMG_SRCs.bg_complete;
     this.createChickens();
     this.calculateChickenPosition();
   }
@@ -121,6 +130,53 @@ export class CanvasComponent implements OnInit {
     }, 30);
   }
 
+  checkForEndboss() {
+    setInterval(() => {
+      let ebStatus = this.getEndbossStatus();
+      switch (ebStatus) {
+        case 'defeated':
+          this.adjustEndbossDeath();
+          break;
+
+        case 'walking':
+          this.adjustEndbossWalking();
+          break;
+
+        default:
+          break;
+      }
+    }, 30);
+  }
+
+  getEndbossStatus() {
+    if (this.endbossDefeatedAt) {
+      return 'defeated';
+    } /*if (!this.endbossDefeatedAt)*/ else {
+      return 'walking';
+    }
+  }
+
+  adjustEndbossDeath() {
+    let timePassed = new Date().getTime() - this.endbossDefeatedAt;
+    if (timePassed > 80 && this.endbossDeathImgNr < 2) {
+      this.endbossDeathImgNr++;
+    }
+    this.endbossImgSrc = IMG_SRCs.giantGallinitaDeath[this.endbossDeathImgNr];
+    this.endboss_X += timePassed * 0.7;
+    this.endboss_Y -= timePassed * 0.3;
+  }
+
+  adjustEndbossWalking() {
+    let timePassed = new Date().getTime() - this.endbossLastWalkAnimationAt;
+    if (timePassed > 80) {
+      this.endbossImgSrc =
+      IMG_SRCs.giantGallinitaWalk[
+        this.endbossWalkImgNr++ % IMG_SRCs.giantGallinitaWalk.length
+      ];
+      this.endbossLastWalkAnimationAt = new Date().getTime();  
+    }
+  }
+
   adjustAudioForJump() {
     if (this.isInJumpProcess() && !AUDIO.RUNNING.paused) {
       AUDIO.RUNNING.pause();
@@ -132,11 +188,11 @@ export class CanvasComponent implements OnInit {
 
   createChickens() {
     this.chickens = [
-      this.createChicken(imgSrcs.gallinita[1], 850),
-      this.createChicken(imgSrcs.gallinita[1], 2850),
-      this.createChicken(imgSrcs.gallinita[1], 3250),
-      this.createChicken(imgSrcs.gallinita[1], 3750),
-      this.createChicken(imgSrcs.gallinita[1], 4050),
+      this.createChicken(IMG_SRCs.gallinita[1], 850),
+      this.createChicken(IMG_SRCs.gallinita[1], 2850),
+      this.createChicken(IMG_SRCs.gallinita[1], 3250),
+      this.createChicken(IMG_SRCs.gallinita[1], 3750),
+      this.createChicken(IMG_SRCs.gallinita[1], 4050),
     ];
   }
 
@@ -199,7 +255,7 @@ export class CanvasComponent implements OnInit {
   drawItemOverview() {
     this.context.font = '30px Kalam';
     this.context.fillText('x' + this.mainChar.collBottles, 50, 55);
-    this.addNonMoveableObject(imgSrcs.bottles[0], -15, 0, 0.2, 1);
+    this.addNonMoveableObject(IMG_SRCs.bottles[0], -15, 0, 0.2, 1);
   }
 
   drawThrowBottle() {
@@ -209,7 +265,7 @@ export class CanvasComponent implements OnInit {
       this.bottles.throwB_X = 225 + timePassed * 0.9;
       this.bottles.throwB_Y = 470 - (timePassed * 0.4 - g);
       this.addNonMoveableObject(
-        imgSrcs.bottles[0],
+        IMG_SRCs.bottles[0],
         this.bottles.throwB_X,
         this.bottles.throwB_Y,
         0.25,
@@ -219,16 +275,23 @@ export class CanvasComponent implements OnInit {
   }
 
   drawEndBoss() {
-    this.context.globalAlpha = 0.3;
-    this.context.fillStyle = 'red';
-    this.context.fillRect(500, 260, 2 * this.endbossEnergy, 15);
+    this.addBgObject(
+      this.endbossImgSrc,
+      this.endboss_X,
+      this.endboss_Y,
+      0.4,
+      1
+    );
 
-    this.context.fillStyle = 'black';
-    this.context.fillRect(495, 255, 210, 25);
-    this.context.globalAlpha = 1;
+    if (!this.endbossDefeatedAt) {
+      this.context.globalAlpha = 0.3;
+      this.context.fillStyle = 'red';
+      this.context.fillRect(BOSS_POSIT, 260, 2 * this.endbossEnergy, 15);
 
-    let endB_x = 500;
-    this.addBgObject(imgSrcs.giantGallinitaWalk[0],endB_x, 225, 0.4, 1);
+      this.context.fillStyle = 'black';
+      this.context.fillRect(BOSS_POSIT - 5, 255, 210, 25);
+      this.context.globalAlpha = 1;
+    }
   }
 
   mirrorImg() {
@@ -240,7 +303,7 @@ export class CanvasComponent implements OnInit {
     this.bottles.placedB.forEach((b) => {
       let x = b.valueOf();
       this.addBgObject(
-        imgSrcs.bottles[0],
+        IMG_SRCs.bottles[0],
         x,
         Y_COORDINATE_BASE_LEVEL + 312,
         0.25,
@@ -268,12 +331,17 @@ export class CanvasComponent implements OnInit {
         }
       }
       // check for endboss
-      if (this.bottles.throwB_X > 500 + this.bg_elements - 100 && 
-        this.bottles.throwB_X < 500 + this.bg_elements + 100) {
-        this.endbossEnergy -= 10;
-        AUDIO.SMASH_BOTTLE.play();
-      } 
-      
+      if (
+        this.bottles.throwB_X > BOSS_POSIT + this.bg_elements - 100 &&
+        this.bottles.throwB_X < BOSS_POSIT + this.bg_elements + 100
+      ) {
+        if (this.endbossEnergy > 0) {
+          this.endbossEnergy -= 10;
+          AUDIO.SMASH_BOTTLE.play();
+        } else {
+          this.endbossDefeatedAt = new Date().getTime();
+        }
+      }
     }, 100);
   }
 
@@ -415,8 +483,8 @@ export class CanvasComponent implements OnInit {
     let diff = new Date().getTime() - this.mainChar.lastIdleStarted;
     if (diff > IDLE_ANIMATION_SWITCH) {
       let src =
-        imgSrcs.charIdle[
-          this.incrImgCount(++this.mainChar.idleImg, imgSrcs.charIdle.length)
+        IMG_SRCs.charIdle[
+          this.incrImgCount(++this.mainChar.idleImg, IMG_SRCs.charIdle.length)
         ];
       this.mainChar.charImageSrc = src;
       this.mainChar.lastIdleStarted = new Date().getTime();
@@ -435,7 +503,7 @@ export class CanvasComponent implements OnInit {
 
   adjustJumpAnimation(diffJumpAnim: number) {
     if (diffJumpAnim > JUMP_ANIMATION_SWITCH && this.mainChar.jumpImg < 7) {
-      this.mainChar.charImageSrc = imgSrcs.charJump[++this.mainChar.jumpImg];
+      this.mainChar.charImageSrc = IMG_SRCs.charJump[++this.mainChar.jumpImg];
       this.mainChar.lastJumpAnimationStarted = new Date().getTime();
     }
   }
@@ -457,7 +525,7 @@ export class CanvasComponent implements OnInit {
     let border = Y_COORDINATE_BASE_LEVEL - 0.05 * Y_COORDINATE_BASE_LEVEL;
     if (this.isLanding(border)) {
       let src =
-        imgSrcs.charJump[++this.mainChar.jumpImg % imgSrcs.charJump.length];
+        IMG_SRCs.charJump[++this.mainChar.jumpImg % IMG_SRCs.charJump.length];
       this.mainChar.charImageSrc = src;
     }
   }
@@ -501,7 +569,7 @@ export class CanvasComponent implements OnInit {
 
   changeWalkAnimation() {
     let src =
-      imgSrcs.charWalk[this.mainChar.walkImg++ % imgSrcs.charWalk.length];
+      IMG_SRCs.charWalk[this.mainChar.walkImg++ % IMG_SRCs.charWalk.length];
     this.mainChar.charImageSrc = src;
     this.mainChar.lastWalkStarted = new Date().getTime();
   }
@@ -539,7 +607,7 @@ export class CanvasComponent implements OnInit {
   endRunningState() {
     this.resetIdle();
     this.mainChar.isIdle = true;
-    this.mainChar.charImageSrc = imgSrcs.charIdle[0];
+    this.mainChar.charImageSrc = IMG_SRCs.charIdle[0];
     AUDIO.RUNNING.pause();
   }
 

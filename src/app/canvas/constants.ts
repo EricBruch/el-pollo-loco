@@ -18,8 +18,10 @@ export const AUDIO = {
   OPEN_BOTTLE: new Audio('assets/audio/open_bottle.mp3'),
   THROW_BOTTLE: new Audio('assets/audio/throw_bottle.mp3'),
   SMASH_BOTTLE: new Audio('assets/audio/smash_bottle.mp3'),
+  COLL_COIN: new Audio('assets/audio/collect_coin.mp3'),
   BG_MUSIC: new Audio('assets/audio/background_music.mp3'),
   CHICKEN: new Audio('assets/audio/chicken.mp3'),
+  WIN: new Audio('assets/audio/win.mp3')
 };
 
 //################################# Character state ###################################

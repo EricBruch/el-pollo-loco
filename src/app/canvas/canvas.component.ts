@@ -53,6 +53,8 @@ export class CanvasComponent implements OnInit {
     lastBottleThrowTime: 0,
   };
 
+  gameFinished = false;
+
   bg_elements: number = 0;
   background_image = new Image();
 
@@ -65,14 +67,14 @@ export class CanvasComponent implements OnInit {
   };
 
   endbossEnergy = 100;
-  endbossDefeatedAt = undefined;
+  endbossDefeatedAt = 0;
   endbossLastWalkAnimationAt = new Date().getTime();
   endbossDeathImgNr = 0;
   endbossWalkImgNr = 0;
   endbossImgSrc = IMG_SRCs.giantGallinitaWalk[0];
   endboss_X = BOSS_POSIT;
   endboss_Y = 225;
-/*
+  /*
   TODOs
   * endboss objekt erstellen mit eigenem Type in constants ordner
   * Endboss:
@@ -211,10 +213,10 @@ export class CanvasComponent implements OnInit {
     let timePassed = new Date().getTime() - this.endbossLastWalkAnimationAt;
     if (timePassed > 80) {
       this.endbossImgSrc =
-      IMG_SRCs.giantGallinitaWalk[
-        this.endbossWalkImgNr++ % IMG_SRCs.giantGallinitaWalk.length
-      ];
-      this.endbossLastWalkAnimationAt = new Date().getTime();  
+        IMG_SRCs.giantGallinitaWalk[
+          this.endbossWalkImgNr++ % IMG_SRCs.giantGallinitaWalk.length
+        ];
+      this.endbossLastWalkAnimationAt = new Date().getTime();
     }
   }
 
@@ -239,19 +241,23 @@ export class CanvasComponent implements OnInit {
 
   draw() {
     this.drawBackgroundPicture();
-    this.updateCharacter();
-    this.drawChicken();
-    this.drawBottles();
-    this.drawEnergyBar();
-    let drawFunction = () => this.draw();
-    try {
-      requestAnimationFrame(drawFunction);
-    } catch (error) {
-      console.error('Graphic card error', error);
+    if (!this.gameFinished) {
+      this.updateCharacter();
+      this.drawChicken();
+      this.drawBottles();
+      this.drawEnergyBar();
+      let drawFunction = () => this.draw();
+      try {
+        requestAnimationFrame(drawFunction);
+      } catch (error) {
+        console.error('Graphic card error', error);
+      }
+      this.drawItemOverview();
+      this.drawThrowBottle();
+      this.drawEndBoss();
+    } else {
+
     }
-    this.drawItemOverview();
-    this.drawThrowBottle();
-    this.drawEndBoss();
   }
 
   updateCharacter() {
@@ -379,11 +385,20 @@ export class CanvasComponent implements OnInit {
         if (this.endbossEnergy > 0) {
           this.endbossEnergy -= 10;
           AUDIO.SMASH_BOTTLE.play();
-        } else {
+        } else if ((this.endbossDefeatedAt == 0)) {
           this.endbossDefeatedAt = new Date().getTime();
+          this.finishLevel();
         }
       }
     }, 100);
+  }
+
+  finishLevel() {
+    AUDIO.CHICKEN.play();
+    setTimeout(() => {
+      AUDIO.WIN.play();
+    }, 500);
+    this.gameFinished = true;
   }
 
   isInCollisionWith(x: number) {

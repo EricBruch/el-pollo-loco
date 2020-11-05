@@ -76,8 +76,9 @@ export class CanvasComponent implements OnInit {
   endboss_Y = 225;
   /*
   TODOs
-  * endboss objekt erstellen mit eigenem Type in constants ordner
-  * Endboss:
+  * + Start Screen
+  * + endboss objekt erstellen mit eigenem Type in constants ordner
+  * + Endboss:
   *   + Animation alert hinzufügen
   *      # mit leichter Bewegung
   *   + Animation attacke hinzufügen
@@ -205,8 +206,8 @@ export class CanvasComponent implements OnInit {
       this.endbossDeathImgNr++;
     }
     this.endbossImgSrc = IMG_SRCs.giantGallinitaDeath[this.endbossDeathImgNr];
-    this.endboss_X += timePassed * 0.7;
-    this.endboss_Y -= timePassed * 0.3;
+    this.endboss_X += timePassed * 0.1;
+    this.endboss_Y -= timePassed * 0.1;
   }
 
   adjustEndbossWalking() {
@@ -240,24 +241,21 @@ export class CanvasComponent implements OnInit {
   }
 
   draw() {
+    let drawFunction = () => this.draw();
+    requestAnimationFrame(drawFunction);
     this.drawBackgroundPicture();
-    if (!this.gameFinished) {
+    if (this.gameFinished) {
+      this.drawVictoryScreen();
+    } else {
       this.updateCharacter();
       this.drawChicken();
       this.drawBottles();
       this.drawEnergyBar();
-      let drawFunction = () => this.draw();
-      try {
-        requestAnimationFrame(drawFunction);
-      } catch (error) {
-        console.error('Graphic card error', error);
-      }
       this.drawItemOverview();
       this.drawThrowBottle();
-      this.drawEndBoss();
-    } else {
-
     }
+    this.drawEndBoss();
+
   }
 
   updateCharacter() {
@@ -341,6 +339,11 @@ export class CanvasComponent implements OnInit {
     }
   }
 
+  drawVictoryScreen() {
+    this.context.font = '120px Kalam';
+    this.context.fillText('You won!', 250, 200);
+  }
+
   mirrorImg() {
     this.context.save();
     this.context.scale(-1, 1);
@@ -385,7 +388,7 @@ export class CanvasComponent implements OnInit {
         if (this.endbossEnergy > 0) {
           this.endbossEnergy -= 10;
           AUDIO.SMASH_BOTTLE.play();
-        } else if ((this.endbossDefeatedAt == 0)) {
+        } else if (this.endbossDefeatedAt == 0) {
           this.endbossDefeatedAt = new Date().getTime();
           this.finishLevel();
         }

@@ -23,6 +23,8 @@ import {
   AUDIO,
   Bottles,
   imgCache,
+  LEFT_BORDER,
+  RIGHT_BORDER
 } from './constants';
 
 @Component({
@@ -152,12 +154,12 @@ export class CanvasComponent implements OnInit {
 
   checkForRunning() {
     setInterval(() => {
-      if (this.mainChar.isRunningRight == true) {
+      if (this.mainChar.isRunningRight == true && this.bg_elements > RIGHT_BORDER) {
         this.adjustAudioForJump();
         this.bg_elements -= WALK_SPEED;
         this.adjustWalkAnimation();
       }
-      if (this.mainChar.isRunningLeft == true && this.bg_elements < 100) {
+      if (this.mainChar.isRunningLeft == true && this.bg_elements < LEFT_BORDER) {
         this.adjustAudioForJump();
         this.bg_elements += WALK_SPEED;
         this.adjustWalkAnimation();
@@ -477,7 +479,7 @@ export class CanvasComponent implements OnInit {
   }
 
   drawBackgroundPicture() {
-    for (let i = -3; i < 10; i += 3) {
+    for (let i = -3; i < 15; i += 3) {
       let canvas = this.myCanvas.nativeElement;
       this.addBGPicture(
         this.background_image,

@@ -7,6 +7,8 @@ export const IDLE_ANIMATION_SWITCH = 8000; // in ms
 export const WALK_ANIMATION_SWITCH = 50; // in ms
 export const GRAVITY = 9.81;
 export const BOSS_X_START = 5000;
+export const LEFT_BORDER = 100;
+export const RIGHT_BORDER = -6500;
 
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px

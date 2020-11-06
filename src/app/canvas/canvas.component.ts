@@ -12,9 +12,10 @@ import {
   IDLE_ANIMATION_SWITCH,
   WALK_ANIMATION_SWITCH,
   GRAVITY,
-  BOSS_POSIT,
+  BOSS_X_START,
   X_COORDINATE_BASE_LEVEL,
   Y_COORDINATE_BASE_LEVEL,
+  CHICKEN_START_POINTS,
   IMG_SRCs,
   MainCharacter,
   Chicken,
@@ -54,6 +55,7 @@ export class CanvasComponent implements OnInit {
   };
 
   gameFinished = false;
+  charLostAt = undefined;
 
   bg_elements: number = 0;
   background_image = new Image();
@@ -72,7 +74,7 @@ export class CanvasComponent implements OnInit {
   endbossDeathImgNr = 0;
   endbossWalkImgNr = 0;
   endbossImgSrc = IMG_SRCs.giantGallinitaWalk[0];
-  endboss_X = BOSS_POSIT;
+  endboss_X = BOSS_X_START.valueOf();
   endboss_Y = 225;
   /*
   TODOs
@@ -231,13 +233,18 @@ export class CanvasComponent implements OnInit {
   }
 
   createChickens() {
-    this.chickens = [
-      this.createChicken(IMG_SRCs.gallinita[1], 850),
-      this.createChicken(IMG_SRCs.gallinita[1], 2850),
-      this.createChicken(IMG_SRCs.gallinita[1], 3250),
-      this.createChicken(IMG_SRCs.gallinita[1], 3750),
-      this.createChicken(IMG_SRCs.gallinita[1], 4050),
-    ];
+    CHICKEN_START_POINTS.forEach((chicken_X) => {
+      let x = Math.round(Math.random());
+      if (x == 0) {
+        this.chickens.push(
+          this.createChicken(IMG_SRCs.gallinitaWalk[0], chicken_X)
+        );
+      } else {
+        this.chickens.push(
+          this.createChicken(IMG_SRCs.pollitoWALK[0], chicken_X)
+        );
+      }
+    });
   }
 
   draw() {
@@ -245,7 +252,7 @@ export class CanvasComponent implements OnInit {
     requestAnimationFrame(drawFunction);
     this.drawBackgroundPicture();
     if (this.gameFinished) {
-      this.drawVictoryScreen();
+      this.drawEndScreen();
     } else {
       this.updateCharacter();
       this.drawChicken();
@@ -255,7 +262,6 @@ export class CanvasComponent implements OnInit {
       this.drawThrowBottle();
     }
     this.drawEndBoss();
-
   }
 
   updateCharacter() {
@@ -329,19 +335,32 @@ export class CanvasComponent implements OnInit {
     );
 
     if (!this.endbossDefeatedAt) {
+      console.log('faad');
+
       this.context.globalAlpha = 0.3;
       this.context.fillStyle = 'red';
-      this.context.fillRect(BOSS_POSIT, 260, 2 * this.endbossEnergy, 15);
+      this.context.fillRect(
+        BOSS_X_START.valueOf() + this.bg_elements,
+        260,
+        2 * this.endbossEnergy,
+        15
+      );
 
       this.context.fillStyle = 'black';
-      this.context.fillRect(BOSS_POSIT - 5, 255, 210, 25);
+      this.context.fillRect(
+        BOSS_X_START.valueOf() - 5 + this.bg_elements,
+        255,
+        210,
+        25
+      );
       this.context.globalAlpha = 1;
     }
   }
 
-  drawVictoryScreen() {
+  drawEndScreen() {
+    let msg = this.charLostAt > 0 ? 'You lost' : 'You won!'
     this.context.font = '120px Kalam';
-    this.context.fillText('You won!', 250, 200);
+    this.context.fillText(msg, 250, 200);
   }
 
   mirrorImg() {
@@ -368,7 +387,12 @@ export class CanvasComponent implements OnInit {
       this.chickens.forEach((c) => {
         let c_x = c.pos_x + this.bg_elements;
         if (this.isInCollisionWith(c_x)) {
-          this.mainChar.charEnergy--;
+          if (this.mainChar.charEnergy > 0) {
+            this.mainChar.charEnergy -= 10;
+          } else {
+            this.charLostAt = new Date().getTime();
+            this.gameFinished = true;
+          }
         }
       });
       // check for tabasco
@@ -382,8 +406,9 @@ export class CanvasComponent implements OnInit {
       }
       // check for endboss
       if (
-        this.bottles.throwB_X > BOSS_POSIT + this.bg_elements - 100 &&
-        this.bottles.throwB_X < BOSS_POSIT + this.bg_elements + 100
+        this.bottles.throwB_X >
+          BOSS_X_START.valueOf() + this.bg_elements - 100 &&
+        this.bottles.throwB_X < BOSS_X_START.valueOf() + this.bg_elements + 100
       ) {
         if (this.endbossEnergy > 0) {
           this.endbossEnergy -= 10;

@@ -6,10 +6,14 @@ export const WALK_SPEED = 7;
 export const IDLE_ANIMATION_SWITCH = 8000; // in ms
 export const WALK_ANIMATION_SWITCH = 50; // in ms
 export const GRAVITY = 9.81;
-export const BOSS_POSIT = 500;
+export const BOSS_X_START = 5000;
 
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
+
+export const CHICKEN_START_POINTS = [
+  700, 1400, 1800, 2500, 3000, 3300, 3800, 4200, 4500
+];
 
 //############################# Audio Sounds ############################
 export const AUDIO = {
@@ -83,18 +87,18 @@ export const IMG_SRCs = {
   bg_complete: 'assets/img/background/Completo.png',
   bg_1: 'assets/img/background/background_1.png',
   bg_2: 'assets/img/background/background_2.png',
-  gallinita: [
-    'assets/img/enemies/gallinita/walk/1.Ga_paso_derecho.png',
-    'assets/img/enemies/gallinita/walk/2-Ga_centro.png',
-    'assets/img/enemies/gallinita/walk/3.Ga_paso izquierdo.png',
+  gallinitaWalk: [
+    'assets/img/enemies/gallinita/walk/0-Ga-walk-right.png',
+    'assets/img/enemies/gallinita/walk/1-Ga-walk-center',
+    'assets/img/enemies/gallinita/walk/2-Ga-walk-left.png',
   ],
-  gallinitaDEAD: 'assets/img/enemies/gallinita/dead/4.G_muerte.png',
-  pollito: [
-    'assets/img/enemies/pollito/walk/1.Paso_derecho.png',
-    'assets/img/enemies/pollito/walk/2.Centro.png',
-    'assets/img/enemies/pollito/walk/3.Paso_izquierdo.png',
+  gallinitaDEAD: 'assets/img/enemies/gallinita/dead/3-Ga-dead.png',
+  pollitoWALK: [
+    'assets/img/enemies/pollito/walk/0-P-right.png',
+    'assets/img/enemies/pollito/walk/1-P-center.png',
+    'assets/img/enemies/pollito/walk/2-P-left.png',
   ],
-  pollitoDEAD: 'assets/img/enemies/pollito/dead/4.Muerte.png',
+  pollitoDEAD: 'assets/img/enemies/pollito/dead/3-P-dead.png',
   bottles: [
     'assets/img/background/objects/bottle/botella.png',
     'assets/img/background/objects/bottle/botella_left.png',

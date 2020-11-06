@@ -22,6 +22,7 @@ import {
   JUMP_ANIMATION_SWITCH,
   AUDIO,
   Bottles,
+  imgCache,
 } from './constants';
 
 @Component({
@@ -113,6 +114,7 @@ export class CanvasComponent implements OnInit {
   *       --> Was ist der Kontext dafür? Ist das die lebensanzeige 
   *           für normale Gegner
   *   Coins sind einfach so zum einsammeln oder?
+  *   Gibt es eine Win-Screen Grafik?
   * -------------------------------------------------
   * Gedanken zu weiteren Themen:
   *   # Vollbildmodus
@@ -130,7 +132,6 @@ export class CanvasComponent implements OnInit {
   ngAfterViewInit(): void {
     this.context = this.myCanvas.nativeElement.getContext('2d');
     this.loadResources();
-    this.initalizeSound();
     // todo optional set const arrays frozen
     this.checkForRunning();
     this.checkForJump();
@@ -139,10 +140,22 @@ export class CanvasComponent implements OnInit {
     this.checkForEndboss();
     this.draw();
   }
+
   loadResources() {
+    this.setupImgCache();
+    // console.log('foo');
+    // console.log(this.mainChar.charImageSrc);
+    // console.log(imgCache[6].src);
+    // console.log(imgCache[6].src.endsWith(this.mainChar.charImageSrc));
+
+    // imgCache.forEach((e) => {
+    //   console.log(e);
+    // });
+    // TODO change to cache Image
     this.background_image.src = IMG_SRCs.bg_complete;
     this.createChickens();
     this.calculateChickenPosition();
+    this.initalizeSound();
   }
 
   checkForRunning() {
@@ -247,6 +260,40 @@ export class CanvasComponent implements OnInit {
     });
   }
 
+  /**
+   * This Method takes all Images Sources from IMG_SRCs
+   * and loads all sources to images that are saved
+   * for fast acces in imgCache.
+   */
+  setupImgCache() {
+    for (const imgCateg in IMG_SRCs) {
+      if (Array.isArray(IMG_SRCs[imgCateg])) {
+        for (let i = 0; i < IMG_SRCs[imgCateg].length; i++) {
+          const src = IMG_SRCs[imgCateg][i];
+          let img = new Image();
+          img.src = src;
+          imgCache.push(img);
+        }
+      } else {
+        const src = IMG_SRCs[imgCateg];
+        let img = new Image();
+        img.src = src;
+        imgCache.push(img);
+      }
+    }
+  }
+
+  getImgFromCache(src_path: string) {
+    this.mainChar.charImage = imgCache.find((img) => {
+      img.src.endsWith(src_path)
+    });
+    // create new Image if not found in cache
+    if (!this.mainChar.charImage) {
+      this.mainChar.charImage = new Image();
+      this.mainChar.charImage.src = src_path;
+    }
+  }
+
   draw() {
     let drawFunction = () => this.draw();
     requestAnimationFrame(drawFunction);
@@ -265,7 +312,9 @@ export class CanvasComponent implements OnInit {
   }
 
   updateCharacter() {
-    this.mainChar.charImage.src = this.mainChar.charImageSrc;
+    this.getImgFromCache(this.mainChar.charImageSrc);
+    //console.log(this.mainChar.charImage);
+
     let xAdjustment = 0;
     let imgWidthAdjustment = 1;
     if (this.mainChar.isRunningLeft) {
@@ -335,8 +384,6 @@ export class CanvasComponent implements OnInit {
     );
 
     if (!this.endbossDefeatedAt) {
-      console.log('faad');
-
       this.context.globalAlpha = 0.3;
       this.context.fillStyle = 'red';
       this.context.fillRect(
@@ -358,7 +405,7 @@ export class CanvasComponent implements OnInit {
   }
 
   drawEndScreen() {
-    let msg = this.charLostAt > 0 ? 'You lost' : 'You won!'
+    let msg = this.charLostAt > 0 ? 'You lost' : 'You won!';
     this.context.font = '120px Kalam';
     this.context.fillText(msg, 250, 200);
   }

@@ -12,7 +12,15 @@ export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
 
 export const CHICKEN_START_POINTS = [
-  700, 1400, 1800, 2500, 3000, 3300, 3800, 4200, 4500
+  700,
+  1400,
+  1800,
+  2500,
+  3000,
+  3300,
+  3800,
+  4200,
+  4500,
 ];
 
 //############################# Audio Sounds ############################
@@ -25,7 +33,7 @@ export const AUDIO = {
   COLL_COIN: new Audio('assets/audio/collect_coin.mp3'),
   BG_MUSIC: new Audio('assets/audio/background_music.mp3'),
   CHICKEN: new Audio('assets/audio/chicken.mp3'),
-  WIN: new Audio('assets/audio/win.mp3')
+  WIN: new Audio('assets/audio/win.mp3'),
 };
 
 //################################# Character state ###################################
@@ -40,7 +48,7 @@ export const enum CHARACTER_STATUS {
 }
 
 // ################################ Character Image Sources ################################
-export const IMG_SRCs = {
+export const IMG_SRCs: any = {
   charWalk: [
     'assets/img/character/walk/W-0.png',
     'assets/img/character/walk/W-1.png',
@@ -89,7 +97,7 @@ export const IMG_SRCs = {
   bg_2: 'assets/img/background/background_2.png',
   gallinitaWalk: [
     'assets/img/enemies/gallinita/walk/0-Ga-walk-right.png',
-    'assets/img/enemies/gallinita/walk/1-Ga-walk-center',
+    'assets/img/enemies/gallinita/walk/1-Ga-walk-center.png',
     'assets/img/enemies/gallinita/walk/2-Ga-walk-left.png',
   ],
   gallinitaDEAD: 'assets/img/enemies/gallinita/dead/3-Ga-dead.png',
@@ -133,16 +141,19 @@ export const IMG_SRCs = {
   giantGallinitaHurt: [
     'assets/img/enemies/giganton_gallinita/hurt/G-hurt-0.png',
     'assets/img/enemies/giganton_gallinita/hurt/G-hurt-1.png',
-    'assets/img/enemies/giganton_gallinita/hurt/G-hurt-2.png'
+    'assets/img/enemies/giganton_gallinita/hurt/G-hurt-2.png',
   ],
   giantGallinitaDeath: [
     'assets/img/enemies/giganton_gallinita/death/G-death-0.png',
     'assets/img/enemies/giganton_gallinita/death/G-death-1.png',
-    'assets/img/enemies/giganton_gallinita/death/G-death-2.png'
-  ]
+    'assets/img/enemies/giganton_gallinita/death/G-death-2.png',
+  ],
 };
 
-/*                      */
+// ##################### Cache for images  ##################################
+export let imgCache = [];
+
+/*         Main Character             */
 export type MainCharacter = {
   charEnergy: number;
   x_coordinate: number;

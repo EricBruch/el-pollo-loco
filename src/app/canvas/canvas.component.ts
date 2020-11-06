@@ -143,14 +143,6 @@ export class CanvasComponent implements OnInit {
 
   loadResources() {
     this.setupImgCache();
-    // console.log('foo');
-    // console.log(this.mainChar.charImageSrc);
-    // console.log(imgCache[6].src);
-    // console.log(imgCache[6].src.endsWith(this.mainChar.charImageSrc));
-
-    // imgCache.forEach((e) => {
-    //   console.log(e);
-    // });
     // TODO change to cache Image
     this.background_image.src = IMG_SRCs.bg_complete;
     this.createChickens();
@@ -485,7 +477,7 @@ export class CanvasComponent implements OnInit {
   }
 
   drawBackgroundPicture() {
-    for (let i = 0; i < 10; i += 3) {
+    for (let i = -3; i < 10; i += 3) {
       let canvas = this.myCanvas.nativeElement;
       this.addBGPicture(
         this.background_image,

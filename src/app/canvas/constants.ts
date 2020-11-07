@@ -13,17 +13,20 @@ export const RIGHT_BORDER = -6500;
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
 
-export const CHICKEN_START_POINTS = [
-  700,
-  1400,
-  1800,
-  2500,
-  3000,
-  3300,
-  3800,
-  4200,
-  4500,
+export const CHICKEN_START_X_COORD = [
+  // 700,
+  // 1400,
+  // 1800,
+  // 2500,
+  // 3000,
+  // 3300,
+  // 3800,
+  // 4200,
+  // 4500,
 ];
+export const COINS_START_X_COORD = [500, 1200];
+
+export const BOTTLE_START_X_COORD = [500, 1000, 1700, 2500, 2800, 3000, 3300];
 
 //############################# Audio Sounds ############################
 export const AUDIO = {
@@ -151,6 +154,11 @@ export const IMG_SRCs: any = {
     'assets/img/enemies/giganton_gallinita/death/G-death-2.png',
   ],
   heart: 'assets/img/background/objects/heart/heart-0.png',
+  coin: 'assets/img/background/objects/coin/0-mony.png',
+  coins: [
+    'assets/img/background/objects/coin/coins-1.png',
+    'assets/img/background/objects/coin/coins-2.png',
+  ],
 };
 
 // ##################### Cache for images  ##################################
@@ -179,6 +187,7 @@ export type MainCharacter = {
   walkLeftImg: number;
   jumpImg: number;
   collBottles: number;
+  collCoins: number;
   lastBottleThrowTime: number;
 };
 
@@ -196,3 +205,10 @@ export type Bottles = {
   throwB_X: number;
   throwB_Y: number;
 };
+
+export type Coin = {
+  pos_x: number;
+  pos_y: number;
+  scale: number;
+  opacity: number;
+}

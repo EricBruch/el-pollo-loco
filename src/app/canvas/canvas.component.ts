@@ -15,7 +15,7 @@ import {
   BOSS_X_START,
   X_COORDINATE_BASE_LEVEL,
   Y_COORDINATE_BASE_LEVEL,
-  CHICKEN_START_POINTS,
+  CHICKEN_START_X_COORD,
   IMG_SRCs,
   MainCharacter,
   Chicken,
@@ -25,6 +25,9 @@ import {
   imgCache,
   LEFT_BORDER,
   RIGHT_BORDER,
+  COINS_START_X_COORD,
+  BOTTLE_START_X_COORD,
+  Coin,
 } from './constants';
 
 @Component({
@@ -55,6 +58,7 @@ export class CanvasComponent implements OnInit {
     walkLeftImg: 0,
     jumpImg: 0,
     collBottles: 50,
+    collCoins: 0,
     lastBottleThrowTime: 0,
   };
 
@@ -66,8 +70,11 @@ export class CanvasComponent implements OnInit {
 
   chickens = [];
 
+  coins = [];
+  coins_i = 1;
+
   bottles: Bottles = {
-    placedB: [500, 1000, 1700, 2500, 2800, 3000, 3300],
+    placedB: BOTTLE_START_X_COORD,
     throwB_X: 0,
     throwB_Y: 0,
   };
@@ -136,16 +143,16 @@ export class CanvasComponent implements OnInit {
     this.checkForJump();
     this.checkForIdle();
     this.checkCollisionDetection();
+    this.calculateChickenPosition();
     this.checkForEndboss();
     this.draw();
   }
 
   loadResources() {
     this.setupImgCache();
-    // TODO change to cache Image
+    this.createCoins();
     this.background_image.src = IMG_SRCs.bg_complete;
     this.createChickens();
-    this.calculateChickenPosition();
     this.initalizeSound();
   }
 
@@ -243,7 +250,7 @@ export class CanvasComponent implements OnInit {
   }
 
   createChickens() {
-    CHICKEN_START_POINTS.forEach((chicken_X) => {
+    CHICKEN_START_X_COORD.forEach((chicken_X) => {
       let x = Math.round(Math.random());
       if (x == 0) {
         this.chickens.push(
@@ -255,6 +262,24 @@ export class CanvasComponent implements OnInit {
         );
       }
     });
+  }
+
+  createCoins() {
+    COINS_START_X_COORD.forEach((coin_x) => {
+      let rnd_y = Math.round(Math.random() * 250);
+      let c = this.createCoin(coin_x, rnd_y);
+      this.coins.push(c);
+    });
+  }
+
+  createCoin(x: number, y: number) {
+    let c: Coin = {
+      pos_x: x,
+      pos_y: Y_COORDINATE_BASE_LEVEL + y,
+      scale: 0.75,
+      opacity: 1,
+    };
+    return c;
   }
 
   /**
@@ -301,6 +326,7 @@ export class CanvasComponent implements OnInit {
       this.updateCharacter();
       this.drawChicken();
       this.drawBottles();
+      this.drawCoins();
       this.drawItemOverview();
       this.drawThrowBottle();
     }
@@ -339,12 +365,17 @@ export class CanvasComponent implements OnInit {
   }
 
   drawItemOverview() {
+    let x_icon = -15;
+    let x_txt = 45;
     this.context.font = '30px Kalam';
-    this.addNonMoveableObject(IMG_SRCs.bottles[0], -15, 0, 0.2, 1);
-    this.context.fillText('x' + this.mainChar.collBottles, 50, 55);
+    this.addNonMoveableObject(IMG_SRCs.bottles[0], x_icon, 0, 0.2, 1);
+    this.context.fillText('x' + this.mainChar.collBottles, x_txt, 55);
 
-    this.addNonMoveableObject(IMG_SRCs.heart, 95, 0, 0.5, 1);
-    this.context.fillText('x' + this.mainChar.charLives, 170, 55);
+    this.addNonMoveableObject(IMG_SRCs.heart, x_icon + 110, 0, 0.5, 1);
+    this.context.fillText('x' + this.mainChar.charLives, x_txt + 120, 55);
+
+    this.addNonMoveableObject(IMG_SRCs.coin, x_icon + 220, 0, 0.5, 1);
+    this.context.fillText('x' + this.mainChar.collCoins, x_txt + 230, 55);
   }
 
   drawThrowBottle() {
@@ -417,47 +448,76 @@ export class CanvasComponent implements OnInit {
     });
   }
 
+  drawCoins() {
+    this.coins.forEach((c) => {
+      let i = this.coins_i === 1 ? 0 : 1;
+      let src = IMG_SRCs.coins[i];
+      this.addBgObject(src, c.pos_x, c.pos_y, c.scale, c.opacity);
+    });
+  }
+
   checkCollisionDetection() {
     setInterval(() => {
-      // check for chicken
-      this.chickens.forEach((c) => {
-        let c_x = c.pos_x + this.bg_elements;
-        if (this.isInCollisionWith(c_x)) {
-          let timePassed = new Date().getTime() - this.mainChar.lastHitHappened;
-          if (this.mainChar.charLives > 0 && timePassed > 1000) {
-            this.mainChar.charLives--;
-            this.mainChar.lastHitHappened = new Date().getTime();
-          } 
-          if (this.mainChar.charLives <= 0) {
-            this.charLostAt = new Date().getTime();
-            this.gameFinished = true;
-          }
-        }
-      });
-      // check for tabasco
-      for (let i = 0; i < this.bottles.placedB.length; i++) {
-        let b_x = this.bottles.placedB[i].valueOf() + this.bg_elements;
-        if (this.isInCollisionWith(b_x)) {
-          this.bottles.placedB.splice(i, 1);
-          AUDIO.OPEN_BOTTLE.play();
-          this.mainChar.collBottles++;
-        }
-      }
-      // check for endboss
-      if (
-        this.bottles.throwB_X >
-          BOSS_X_START.valueOf() + this.bg_elements - 100 &&
-        this.bottles.throwB_X < BOSS_X_START.valueOf() + this.bg_elements + 100
-      ) {
-        if (this.endbossEnergy > 0) {
-          this.endbossEnergy -= 10;
-          AUDIO.SMASH_BOTTLE.play();
-        } else if (this.endbossDefeatedAt == 0) {
-          this.endbossDefeatedAt = new Date().getTime();
-          this.finishLevel();
-        }
-      }
+      this.checkCollisionChicken();
+      this.checkCollisionTabasco();
+      this.checkCollisionEndboss();
+      this.checkCollisionCoins();
     }, 100);
+  }
+
+  checkCollisionChicken() {
+    this.chickens.forEach((c) => {
+      let c_x = c.pos_x + this.bg_elements;
+      if (this.isInCollisionWith(c_x, 220)) {
+        let timePassed = new Date().getTime() - this.mainChar.lastHitHappened;
+        if (this.mainChar.charLives > 0 && timePassed > 1000) {
+          this.mainChar.charLives--;
+          this.mainChar.lastHitHappened = new Date().getTime();
+        }
+        if (this.mainChar.charLives <= 0) {
+          this.charLostAt = new Date().getTime();
+          this.gameFinished = true;
+        }
+      }
+    });
+  }
+
+  checkCollisionTabasco() {
+    for (let i = 0; i < this.bottles.placedB.length; i++) {
+      let b_x = this.bottles.placedB[i].valueOf() + this.bg_elements;
+      if (this.isInCollisionWith(b_x, 220)) {
+        this.bottles.placedB.splice(i, 1);
+        AUDIO.OPEN_BOTTLE.play();
+        this.mainChar.collBottles++;
+      }
+    }
+  }
+
+  checkCollisionEndboss() {
+    if (
+      this.bottles.throwB_X > BOSS_X_START.valueOf() + this.bg_elements - 100 &&
+      this.bottles.throwB_X < BOSS_X_START.valueOf() + this.bg_elements + 100
+    ) {
+      if (this.endbossEnergy > 0) {
+        this.endbossEnergy -= 10;
+        AUDIO.SMASH_BOTTLE.play();
+      } else if (this.endbossDefeatedAt == 0) {
+        this.endbossDefeatedAt = new Date().getTime();
+        this.finishLevel();
+      }
+    }
+  }
+
+  checkCollisionCoins() {
+    for (let i = 0; i < this.coins.length; i++) {
+      const coin = this.coins[i];
+      let c_x = coin.pos_x + this.bg_elements;
+      if (this.isInCollisionWith(c_x, 220)) {
+        this.mainChar.collCoins++;
+        this.coins.splice(i, 1);
+        AUDIO.COLL_COIN.play();
+      }
+    }
   }
 
   finishLevel() {
@@ -468,11 +528,11 @@ export class CanvasComponent implements OnInit {
     this.gameFinished = true;
   }
 
-  isInCollisionWith(x: number) {
+  isInCollisionWith(x: number, y: number) {
     return (
       x - 60 < this.mainChar.x_coordinate &&
       x + 60 > this.mainChar.x_coordinate &&
-      this.mainChar.y_coordinate > 220
+      this.mainChar.y_coordinate > y
     );
   }
 

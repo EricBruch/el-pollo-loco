@@ -6,12 +6,14 @@ export const WALK_SPEED = 7;
 export const IDLE_ANIMATION_SWITCH = 8000; // in ms
 export const WALK_ANIMATION_SWITCH = 50; // in ms
 export const GRAVITY = 9.81;
-export const BOSS_X_START = 5000;
 export const LEFT_BORDER = 100;
 export const RIGHT_BORDER = -6500;
 
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
+
+export const BOSS_X_START = 500;
+export const BOSS_Y_START = 225;
 
 export const CHICKEN_START_X_COORD = [
   // 700,
@@ -24,9 +26,13 @@ export const CHICKEN_START_X_COORD = [
   // 4200,
   // 4500,
 ];
-export const COINS_START_X_COORD = [500, 1200];
+export const COINS_START_X_COORD = [
+  // 500, 1200
+];
 
-export const BOTTLE_START_X_COORD = [500, 1000, 1700, 2500, 2800, 3000, 3300];
+export const BOTTLE_START_X_COORD = [
+  // 500, 1000, 1700, 2500, 2800, 3000, 3300
+];
 
 //############################# Audio Sounds ############################
 export const AUDIO = {
@@ -40,17 +46,6 @@ export const AUDIO = {
   CHICKEN: new Audio('assets/audio/chicken.mp3'),
   WIN: new Audio('assets/audio/win.mp3'),
 };
-
-//################################# Character state ###################################
-// Enum describes the States that the character can be in
-export const enum CHARACTER_STATUS {
-  IDLE = 'IDLE',
-  LONG_IDLE_ = 'LONG_IDLE',
-  WALK_LEFT = 'WALK_LEFT',
-  WALK_RIGHT = 'WALK_RIGHT',
-  JUMP = 'JUMP',
-  HIT = 'HIT',
-}
 
 // ################################ Character Image Sources ################################
 export const IMG_SRCs: any = {
@@ -116,6 +111,20 @@ export const IMG_SRCs: any = {
     'assets/img/background/objects/bottle/botella.png',
     'assets/img/background/objects/bottle/botella_left.png',
     'assets/img/background/objects/bottle/botella_right.png',
+  ],
+  bottlesSpinning: [
+    'assets/img/background/objects/bottle/spinning/bottle-spinning-0.png',
+    'assets/img/background/objects/bottle/spinning/bottle-spinning-1.png',
+    'assets/img/background/objects/bottle/spinning/bottle-spinning-2.png',
+    'assets/img/background/objects/bottle/spinning/bottle-spinning-3.png',
+  ],
+  bottlesSplash: [
+    'assets/img/background/objects/bottle/splash/salsa-splash-0.png',
+    'assets/img/background/objects/bottle/splash/salsa-splash-1.png',
+    'assets/img/background/objects/bottle/splash/salsa-splash-2.png',
+    'assets/img/background/objects/bottle/splash/salsa-splash-3.png',
+    'assets/img/background/objects/bottle/splash/salsa-splash-4.png',
+    'assets/img/background/objects/bottle/splash/salsa-splash-5.png',
   ],
   giantGallinitaWalk: [
     'assets/img/enemies/giganton_gallinita/walk/G-walk-0.png',
@@ -204,6 +213,8 @@ export type Bottles = {
   placedB: Array<number>;
   throwB_X: number;
   throwB_Y: number;
+  throwB_Status: string;
+  throwB_ImgNr: number;
 };
 
 export type Coin = {
@@ -211,4 +222,16 @@ export type Coin = {
   pos_y: number;
   scale: number;
   opacity: number;
-}
+};
+
+export type EndBoss = {
+  live: number;
+  defeatedAt: number;
+  lastHitTakenAt: number;
+  lastWalkAnimationAt: number;
+  deathImgNr: number;
+  walkImgNr: number;
+  imgSrc: string;
+  pos_x: number;
+  pos_y: number;
+};

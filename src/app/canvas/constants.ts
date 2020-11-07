@@ -150,6 +150,7 @@ export const IMG_SRCs: any = {
     'assets/img/enemies/giganton_gallinita/death/G-death-1.png',
     'assets/img/enemies/giganton_gallinita/death/G-death-2.png',
   ],
+  heart: 'assets/img/background/objects/heart/heart-0.png',
 };
 
 // ##################### Cache for images  ##################################
@@ -157,7 +158,7 @@ export let imgCache = [];
 
 /*         Main Character             */
 export type MainCharacter = {
-  charEnergy: number;
+  charLives: number;
   x_coordinate: number;
   y_coordinate: number;
   isIdle: boolean;
@@ -169,6 +170,7 @@ export type MainCharacter = {
   lastJumpAnimationStarted: number;
   lastIdleStarted: number;
   lastWalkStarted: number;
+  lastHitHappened: number;
   charImage: HTMLImageElement;
   charImageSrc: string;
   idleImg: number;

@@ -24,7 +24,7 @@ import {
   Bottles,
   imgCache,
   LEFT_BORDER,
-  RIGHT_BORDER
+  RIGHT_BORDER,
 } from './constants';
 
 @Component({
@@ -34,7 +34,7 @@ import {
 })
 export class CanvasComponent implements OnInit {
   mainChar: MainCharacter = {
-    charEnergy: 100,
+    charLives: 5,
     x_coordinate: X_COORDINATE_BASE_LEVEL,
     y_coordinate: Y_COORDINATE_BASE_LEVEL,
     isIdle: true,
@@ -46,6 +46,7 @@ export class CanvasComponent implements OnInit {
     lastJumpAnimationStarted: 0,
     lastIdleStarted: 0,
     lastWalkStarted: 0,
+    lastHitHappened: 0,
     charImage: new Image(),
     charImageSrc: IMG_SRCs.charIdle[0],
     idleImg: 0,
@@ -103,10 +104,6 @@ export class CanvasComponent implements OnInit {
   * + Tabasco Flasche:
   *   # splash animation der Flasche
   *   # dreh Animation der Flasche beim werfen
-  * + Hintergrund:
-  *   # vor dem Anfang hinzufügen damit es nicht so weird ausschaut
-  * + verschiedene Hühner Formen einsetzen:
-  *   # Huhn 1 UND Huhn 2
   * + Main Character:
   *   # Long_Idle hinzufügen für wartenden Character
   *   # Animation hurt hinzufügen
@@ -154,12 +151,18 @@ export class CanvasComponent implements OnInit {
 
   checkForRunning() {
     setInterval(() => {
-      if (this.mainChar.isRunningRight == true && this.bg_elements > RIGHT_BORDER) {
+      if (
+        this.mainChar.isRunningRight == true &&
+        this.bg_elements > RIGHT_BORDER
+      ) {
         this.adjustAudioForJump();
         this.bg_elements -= WALK_SPEED;
         this.adjustWalkAnimation();
       }
-      if (this.mainChar.isRunningLeft == true && this.bg_elements < LEFT_BORDER) {
+      if (
+        this.mainChar.isRunningLeft == true &&
+        this.bg_elements < LEFT_BORDER
+      ) {
         this.adjustAudioForJump();
         this.bg_elements += WALK_SPEED;
         this.adjustWalkAnimation();
@@ -279,7 +282,7 @@ export class CanvasComponent implements OnInit {
 
   getImgFromCache(src_path: string) {
     this.mainChar.charImage = imgCache.find((img) => {
-      img.src.endsWith(src_path)
+      img.src.endsWith(src_path);
     });
     // create new Image if not found in cache
     if (!this.mainChar.charImage) {
@@ -298,7 +301,6 @@ export class CanvasComponent implements OnInit {
       this.updateCharacter();
       this.drawChicken();
       this.drawBottles();
-      this.drawEnergyBar();
       this.drawItemOverview();
       this.drawThrowBottle();
     }
@@ -336,20 +338,13 @@ export class CanvasComponent implements OnInit {
     AUDIO.BG_MUSIC.volume = 0.2;
   }
 
-  drawEnergyBar() {
-    this.context.globalAlpha = 0.3;
-    this.context.fillStyle = 'blue';
-    this.context.fillRect(680, 15, 2 * this.mainChar.charEnergy, 30);
-
-    this.context.fillStyle = 'black';
-    this.context.fillRect(675, 10, 210, 40);
-    this.context.globalAlpha = 1;
-  }
-
   drawItemOverview() {
     this.context.font = '30px Kalam';
-    this.context.fillText('x' + this.mainChar.collBottles, 50, 55);
     this.addNonMoveableObject(IMG_SRCs.bottles[0], -15, 0, 0.2, 1);
+    this.context.fillText('x' + this.mainChar.collBottles, 50, 55);
+
+    this.addNonMoveableObject(IMG_SRCs.heart, 95, 0, 0.5, 1);
+    this.context.fillText('x' + this.mainChar.charLives, 170, 55);
   }
 
   drawThrowBottle() {
@@ -428,9 +423,12 @@ export class CanvasComponent implements OnInit {
       this.chickens.forEach((c) => {
         let c_x = c.pos_x + this.bg_elements;
         if (this.isInCollisionWith(c_x)) {
-          if (this.mainChar.charEnergy > 0) {
-            this.mainChar.charEnergy -= 10;
-          } else {
+          let timePassed = new Date().getTime() - this.mainChar.lastHitHappened;
+          if (this.mainChar.charLives > 0 && timePassed > 1000) {
+            this.mainChar.charLives--;
+            this.mainChar.lastHitHappened = new Date().getTime();
+          } 
+          if (this.mainChar.charLives <= 0) {
             this.charLostAt = new Date().getTime();
             this.gameFinished = true;
           }

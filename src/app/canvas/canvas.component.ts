@@ -603,24 +603,8 @@ export class CanvasComponent implements OnInit {
   }
 
   checkCollisionEndboss() {
-    let timePassed = new Date().getTime() - this.endboss.lastHitTakenAt;
-    if (
-      this.bottles.throwB_X > this.endboss.pos_x + this.bg_elements - 100 &&
-      this.bottles.throwB_X < this.endboss.pos_x + this.bg_elements + 100 &&
-      timePassed > 1000
-    ) {
-      if (this.endboss.live > 0) {
-        AUDIO.SMASH_BOTTLE.play();
-        this.bottles.throwB_Status = 'splash';
-        this.bottles.throwB_ImgNr = 0;
-        this.endboss.live -= 10;
-        this.endboss.lastHitTakenAt = new Date().getTime();
-        this.endboss.status = ENDBOSS_STATUS.hit;
-      } else if (this.endboss.defeatedAt == 0) {
-        this.endboss.defeatedAt = new Date().getTime();
-        this.finishLevel();
-      }
-    }
+    this.checkEndbossHit();
+    this.checkEndbossCharacterHit();
   }
 
   checkCollisionCoins() {
@@ -649,6 +633,46 @@ export class CanvasComponent implements OnInit {
       x + 60 > this.mainChar.x_coordinate &&
       this.mainChar.y_coordinate > y
     );
+  }
+
+  checkEndbossHit() {
+    let timePassed = new Date().getTime() - this.endboss.lastHitTakenAt;
+    if (
+      this.bottles.throwB_X > this.endboss.pos_x + this.bg_elements - 100 &&
+      this.bottles.throwB_X < this.endboss.pos_x + this.bg_elements + 100 &&
+      timePassed > 1000
+    ) {
+      if (this.endboss.live > 0) {
+        AUDIO.SMASH_BOTTLE.play();
+        this.bottles.throwB_Status = 'splash';
+        this.bottles.throwB_ImgNr = 0;
+        this.endboss.live -= 10;
+        this.endboss.lastHitTakenAt = new Date().getTime();
+        this.endboss.status = ENDBOSS_STATUS.hit;
+      } else if (this.endboss.defeatedAt == 0) {
+        this.endboss.defeatedAt = new Date().getTime();
+        this.finishLevel();
+      }
+    }
+  }
+
+  checkEndbossCharacterHit() {
+    let timePassed = new Date().getTime() - this.mainChar.lastHitHappened;
+    if (
+      this.mainChar.x_coordinate >
+        this.endboss.pos_x + this.bg_elements - 100 &&
+      this.mainChar.x_coordinate <
+        this.endboss.pos_x + this.bg_elements + 100 &&
+      timePassed > 1000
+    ) {
+      if (this.mainChar.charLives > 1) {
+        this.mainChar.charLives--;
+        this.mainChar.lastHitHappened = new Date().getTime();
+      } else {
+        this.charLostAt = new Date().getTime();
+        this.gameFinished = true;
+      }
+    }
   }
 
   drawBackgroundPicture() {

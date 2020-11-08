@@ -12,7 +12,7 @@ export const RIGHT_BORDER = -6500;
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
 
-export const BOSS_X_START = 500;
+export const BOSS_X_START = 5000;
 export const BOSS_Y_START = 225;
 
 export enum ENDBOSS_STATUS {
@@ -245,6 +245,7 @@ export type EndBoss = {
   hurtImgNr: number;
   alertImgNr: number;
   attackImgNr: number;
+  moveLeft: boolean;
   imgSrc: string;
   pos_x: number;
   pos_y: number;

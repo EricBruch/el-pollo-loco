@@ -95,6 +95,7 @@ export class CanvasComponent implements OnInit {
     hurtImgNr: 0,
     alertImgNr: 0,
     attackImgNr: 0,
+    moveLeft: true,
     imgSrc: IMG_SRCs.giantGallinitaWalk[0],
     pos_x: BOSS_X_START,
     pos_y: BOSS_Y_START,
@@ -250,6 +251,7 @@ export class CanvasComponent implements OnInit {
   }
 
   adjustEndbossWalking() {
+    this.adjustEndbossMovement(2);
     let timePassed = new Date().getTime() - this.endboss.lastWalkAnimationAt;
     if (timePassed > 80) {
       this.endboss.imgSrc =
@@ -275,6 +277,7 @@ export class CanvasComponent implements OnInit {
   }
 
   adjustEndbossAlert() {
+    this.adjustEndbossMovement(7);
     let timePassed = new Date().getTime() - this.endboss.lastWalkAnimationAt;
     if (timePassed > 80) {
       this.endboss.imgSrc =
@@ -286,6 +289,7 @@ export class CanvasComponent implements OnInit {
   }
 
   adjustEndbossAttack() {
+    this.adjustEndbossMovement(15);
     let timePassed = new Date().getTime() - this.endboss.lastWalkAnimationAt;
     if (timePassed > 80) {
       this.endboss.imgSrc =
@@ -293,6 +297,24 @@ export class CanvasComponent implements OnInit {
           this.endboss.attackImgNr++ % IMG_SRCs.giantGallinitaAttack.length
         ];
       this.endboss.lastWalkAnimationAt = new Date().getTime();
+    }
+  }
+
+  adjustEndbossMovement(move_x: number) {
+    let x_left_border = BOSS_X_START - Math.round(Math.random() * 1000);
+    let x_right_border = BOSS_X_START + Math.round(Math.random() * 1000);
+    if (this.endboss.moveLeft) {
+      if (this.endboss.pos_x > x_left_border) {
+        this.endboss.pos_x -= move_x;
+      } else {
+        this.endboss.moveLeft = false;
+      }
+    } else {
+      if (this.endboss.pos_x < x_right_border) {
+        this.endboss.pos_x += move_x;
+      } else {
+        this.endboss.moveLeft = true;
+      }
     }
   }
 
@@ -494,7 +516,7 @@ export class CanvasComponent implements OnInit {
       this.context.globalAlpha = 0.3;
       this.context.fillStyle = 'red';
       this.context.fillRect(
-        BOSS_X_START.valueOf() + this.bg_elements,
+        this.endboss.pos_x + this.bg_elements,
         260,
         2 * this.endboss.live,
         15
@@ -502,7 +524,7 @@ export class CanvasComponent implements OnInit {
 
       this.context.fillStyle = 'black';
       this.context.fillRect(
-        BOSS_X_START.valueOf() - 5 + this.bg_elements,
+        this.endboss.pos_x - 5 + this.bg_elements,
         255,
         210,
         25
@@ -583,8 +605,8 @@ export class CanvasComponent implements OnInit {
   checkCollisionEndboss() {
     let timePassed = new Date().getTime() - this.endboss.lastHitTakenAt;
     if (
-      this.bottles.throwB_X > BOSS_X_START.valueOf() + this.bg_elements - 100 &&
-      this.bottles.throwB_X < BOSS_X_START.valueOf() + this.bg_elements + 100 &&
+      this.bottles.throwB_X > this.endboss.pos_x + this.bg_elements - 100 &&
+      this.bottles.throwB_X < this.endboss.pos_x + this.bg_elements + 100 &&
       timePassed > 1000
     ) {
       if (this.endboss.live > 0) {

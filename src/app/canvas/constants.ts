@@ -15,6 +15,15 @@ export const Y_COORDINATE_BASE_LEVEL = 260; // in px
 export const BOSS_X_START = 500;
 export const BOSS_Y_START = 225;
 
+export enum ENDBOSS_STATUS {
+  walk = 'walk',
+  alert = 'alert',
+  attack = 'attack',
+  hit = 'hit',
+  death = 'death',
+  adjust = 'adjust',
+}
+
 export const CHICKEN_START_X_COORD = [
   // 700,
   // 1400,
@@ -142,7 +151,7 @@ export const IMG_SRCs: any = {
     'assets/img/enemies/giganton_gallinita/alert/G-Alert-6.png',
     'assets/img/enemies/giganton_gallinita/alert/G-Alert-7.png',
   ],
-  giantGallinitaAttacke: [
+  giantGallinitaAttack: [
     'assets/img/enemies/giganton_gallinita/attacke/G-Attack-0.png',
     'assets/img/enemies/giganton_gallinita/attacke/G-Attack-1.png',
     'assets/img/enemies/giganton_gallinita/attacke/G-Attack-2.png',
@@ -229,8 +238,13 @@ export type EndBoss = {
   defeatedAt: number;
   lastHitTakenAt: number;
   lastWalkAnimationAt: number;
+  lastHitAnimationAt: number;
+  status: string;
   deathImgNr: number;
   walkImgNr: number;
+  hurtImgNr: number;
+  alertImgNr: number;
+  attackImgNr: number;
   imgSrc: string;
   pos_x: number;
   pos_y: number;

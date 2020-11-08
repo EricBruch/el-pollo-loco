@@ -30,6 +30,7 @@ import {
   BOTTLE_START_X_COORD,
   Coin,
   EndBoss,
+  ENDBOSS_STATUS,
 } from './constants';
 
 @Component({
@@ -86,9 +87,14 @@ export class CanvasComponent implements OnInit {
     live: 100,
     defeatedAt: 0,
     lastHitTakenAt: 0,
-    lastWalkAnimationAt: new Date().getTime(),
+    lastWalkAnimationAt: 0,
+    lastHitAnimationAt: 0,
+    status: ENDBOSS_STATUS.walk,
     deathImgNr: 0,
     walkImgNr: 0,
+    hurtImgNr: 0,
+    alertImgNr: 0,
+    attackImgNr: 0,
     imgSrc: IMG_SRCs.giantGallinitaWalk[0],
     pos_x: BOSS_X_START,
     pos_y: BOSS_Y_START,
@@ -100,17 +106,13 @@ export class CanvasComponent implements OnInit {
   * + Endboss:
   *   + Animation alert hinzufügen
   *      # mit leichter Bewegung
-  *   + Animation attacke hinzufügen
+  *   + Animation attack hinzufügen
   *      # mit großer Bewegung
   *   + Animation hurt hinzufügen wenn getroffen
   *      # Idee für identifikation: 
   *         Mit LastAnimationDate; undefined setzen für Abbruch
-  *   + Check das Jeder Flaschenwurd nur 1x mal Schaden ausführt.
   *   + Check das Endgegner besiegt wird wenn Leben auf 0 oder weniger geht.
   * + Sound für aufeinanderfolgenden Flaschenwurf abspielen
-  * + Tabasco Flasche:
-  *   # splash animation der Flasche
-  *   # dreh Animation der Flasche beim werfen
   * + Main Character:
   *   # Long_Idle hinzufügen für wartenden Character
   *   # Animation hurt hinzufügen
@@ -138,13 +140,12 @@ export class CanvasComponent implements OnInit {
   ngAfterViewInit(): void {
     this.context = this.myCanvas.nativeElement.getContext('2d');
     this.loadResources();
-    // todo optional set const arrays frozen
     this.checkForRunning();
     this.checkForJump();
     this.checkForIdle();
     this.checkCollisionDetection();
     this.calculateChickenPosition();
-    this.checkForEndboss();
+    this.checkForAnimationEndboss();
     this.draw();
   }
 
@@ -193,16 +194,28 @@ export class CanvasComponent implements OnInit {
     }, 30);
   }
 
-  checkForEndboss() {
+  checkForAnimationEndboss() {
     setInterval(() => {
-      let ebStatus = this.getEndbossStatus();
-      switch (ebStatus) {
-        case 'defeated':
+      let st = this.getEndbossStatus();
+      switch (st) {
+        case ENDBOSS_STATUS.death:
           this.adjustEndbossDeath();
           break;
 
-        case 'walking':
+        case ENDBOSS_STATUS.hit:
+          this.adjustEndbossHit();
+          break;
+
+        case ENDBOSS_STATUS.walk:
           this.adjustEndbossWalking();
+          break;
+
+        case ENDBOSS_STATUS.alert:
+          this.adjustEndbossAlert();
+          break;
+
+        case ENDBOSS_STATUS.attack:
+          this.adjustEndbossAttack();
           break;
 
         default:
@@ -213,9 +226,16 @@ export class CanvasComponent implements OnInit {
 
   getEndbossStatus() {
     if (this.endboss.defeatedAt) {
-      return 'defeated';
-    } /*if (!this.endboss.defeatedAt)*/ else {
-      return 'walking';
+      return ENDBOSS_STATUS.death;
+    }
+    if (this.endboss.status === ENDBOSS_STATUS.hit) {
+      return ENDBOSS_STATUS.hit;
+    } else if (this.endboss.live >= 70) {
+      return ENDBOSS_STATUS.walk;
+    } else if (this.endboss.live >= 40) {
+      return ENDBOSS_STATUS.alert;
+    } else {
+      return ENDBOSS_STATUS.attack;
     }
   }
 
@@ -235,6 +255,42 @@ export class CanvasComponent implements OnInit {
       this.endboss.imgSrc =
         IMG_SRCs.giantGallinitaWalk[
           this.endboss.walkImgNr++ % IMG_SRCs.giantGallinitaWalk.length
+        ];
+      this.endboss.lastWalkAnimationAt = new Date().getTime();
+    }
+  }
+
+  adjustEndbossHit() {
+    let timePassed = new Date().getTime() - this.endboss.lastHitTakenAt;
+    if (timePassed > 55) {
+      if (this.endboss.hurtImgNr < IMG_SRCs.giantGallinitaHurt.length) {
+        this.endboss.imgSrc =
+          IMG_SRCs.giantGallinitaHurt[this.endboss.hurtImgNr++];
+        this.endboss.lastHitTakenAt = new Date().getTime();
+      } else {
+        this.endboss.status = ENDBOSS_STATUS.adjust;
+        this.endboss.hurtImgNr = 0;
+      }
+    }
+  }
+
+  adjustEndbossAlert() {
+    let timePassed = new Date().getTime() - this.endboss.lastWalkAnimationAt;
+    if (timePassed > 80) {
+      this.endboss.imgSrc =
+        IMG_SRCs.giantGallinitaAlert[
+          this.endboss.alertImgNr++ % IMG_SRCs.giantGallinitaAlert.length
+        ];
+      this.endboss.lastWalkAnimationAt = new Date().getTime();
+    }
+  }
+
+  adjustEndbossAttack() {
+    let timePassed = new Date().getTime() - this.endboss.lastWalkAnimationAt;
+    if (timePassed > 80) {
+      this.endboss.imgSrc =
+        IMG_SRCs.giantGallinitaAttack[
+          this.endboss.attackImgNr++ % IMG_SRCs.giantGallinitaAttack.length
         ];
       this.endboss.lastWalkAnimationAt = new Date().getTime();
     }
@@ -398,7 +454,7 @@ export class CanvasComponent implements OnInit {
     let g = Math.pow(GRAVITY, timePassed / 300);
     this.bottles.throwB_X = 225 + timePassed * 0.9;
     this.bottles.throwB_Y = 470 - (timePassed * 0.4 - g);
-    let n = this.bottles.throwB_ImgNr++ % IMG_SRCs.bottlesSpinning.length; 
+    let n = this.bottles.throwB_ImgNr++ % IMG_SRCs.bottlesSpinning.length;
     this.addNonMoveableObject(
       IMG_SRCs.bottlesSpinning[n],
       this.bottles.throwB_X,
@@ -537,6 +593,7 @@ export class CanvasComponent implements OnInit {
         this.bottles.throwB_ImgNr = 0;
         this.endboss.live -= 10;
         this.endboss.lastHitTakenAt = new Date().getTime();
+        this.endboss.status = ENDBOSS_STATUS.hit;
       } else if (this.endboss.defeatedAt == 0) {
         this.endboss.defeatedAt = new Date().getTime();
         this.finishLevel();

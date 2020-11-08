@@ -40,7 +40,7 @@ import {
 })
 export class CanvasComponent implements OnInit {
   mainChar: MainCharacter = {
-    charLives: 5,
+    charLives: 2,
     x_coordinate: X_COORDINATE_BASE_LEVEL,
     y_coordinate: Y_COORDINATE_BASE_LEVEL,
     isIdle: true,
@@ -48,18 +48,19 @@ export class CanvasComponent implements OnInit {
     isFalling: false,
     isRunningRight: false,
     isRunningLeft: false,
+    isHit: false,
     lastJumpStarted: 0,
     lastJumpAnimationStarted: 0,
     lastIdleStarted: 0,
     lastWalkStarted: 0,
     lastHitHappened: 0,
+    lastHitAnimation: 0,
     charImage: new Image(),
     charImageSrc: IMG_SRCs.charIdle[0],
     idleImg: 0,
     walkImg: 0,
-    walkRightImg: 0,
-    walkLeftImg: 0,
     jumpImg: 0,
+    hitImg: 0,
     collBottles: 50,
     collCoins: 0,
     lastBottleThrowTime: 0,
@@ -105,14 +106,6 @@ export class CanvasComponent implements OnInit {
   * + Start Screen
   * + endboss objekt erstellen mit eigenem Type in constants ordner
   * + Endboss:
-  *   + Animation alert hinzufügen
-  *      # mit leichter Bewegung
-  *   + Animation attack hinzufügen
-  *      # mit großer Bewegung
-  *   + Animation hurt hinzufügen wenn getroffen
-  *      # Idee für identifikation: 
-  *         Mit LastAnimationDate; undefined setzen für Abbruch
-  *   + Check das Endgegner besiegt wird wenn Leben auf 0 oder weniger geht.
   * + Sound für aufeinanderfolgenden Flaschenwurf abspielen
   * + Main Character:
   *   # Long_Idle hinzufügen für wartenden Character
@@ -141,12 +134,10 @@ export class CanvasComponent implements OnInit {
   ngAfterViewInit(): void {
     this.context = this.myCanvas.nativeElement.getContext('2d');
     this.loadResources();
-    this.checkForRunning();
-    this.checkForJump();
-    this.checkForIdle();
     this.checkCollisionDetection();
     this.calculateChickenPosition();
     this.checkForAnimationEndboss();
+    this.checkForAnimationCharacter();
     this.draw();
   }
 
@@ -189,8 +180,31 @@ export class CanvasComponent implements OnInit {
 
   checkForIdle() {
     setInterval(() => {
-      if (this.mainChar.isIdle) {
+      if (this.mainChar.isIdle && !this.mainChar.isHit) {
         this.updateIdleState();
+      }
+    }, 30);
+  }
+
+  checkForAnimationCharacter() {
+    this.checkForRunning();
+    this.checkForJump();
+    this.checkForIdle();
+    this.checkCharacterHit();
+  }
+
+  checkCharacterHit() {
+    setInterval(() => {
+      let timePassed = new Date().getTime() - this.mainChar.lastHitAnimation;
+      if (this.mainChar.isHit && timePassed > 70) {
+        let n = this.mainChar.hitImg++;
+        if (n < IMG_SRCs.charHit.length) {
+          this.mainChar.charImageSrc = IMG_SRCs.charHit[n];
+          this.mainChar.lastHitAnimation = new Date().getTime();
+        } else {
+          this.mainChar.hitImg = 0;
+          this.mainChar.isHit = false;
+        }
       }
     }, 30);
   }
@@ -571,17 +585,18 @@ export class CanvasComponent implements OnInit {
       this.checkCollisionTabasco();
       this.checkCollisionEndboss();
       this.checkCollisionCoins();
-    }, 100);
+    }, 30);
   }
 
   checkCollisionChicken() {
     this.chickens.forEach((c) => {
       let c_x = c.pos_x + this.bg_elements;
-      if (this.isInCollisionWith(c_x, 220)) {
-        let timePassed = new Date().getTime() - this.mainChar.lastHitHappened;
-        if (this.mainChar.charLives > 0 && timePassed > 1000) {
+      let timePassed = new Date().getTime() - this.mainChar.lastHitHappened;
+      if (this.isInCollisionWith(c_x, 220) && timePassed > 2000) {
+        if (this.mainChar.charLives > 0) {
           this.mainChar.charLives--;
           this.mainChar.lastHitHappened = new Date().getTime();
+          this.mainChar.isHit = true;
         }
         if (this.mainChar.charLives <= 0) {
           this.charLostAt = new Date().getTime();
@@ -824,7 +839,11 @@ export class CanvasComponent implements OnInit {
   }
 
   adjustJumpAnimation(diffJumpAnim: number) {
-    if (diffJumpAnim > JUMP_ANIMATION_SWITCH && this.mainChar.jumpImg < 7) {
+    if (
+      diffJumpAnim > JUMP_ANIMATION_SWITCH &&
+      this.mainChar.jumpImg < 7 &&
+      !this.mainChar.isHit
+    ) {
       this.mainChar.charImageSrc = IMG_SRCs.charJump[++this.mainChar.jumpImg];
       this.mainChar.lastJumpAnimationStarted = new Date().getTime();
     }
@@ -845,7 +864,7 @@ export class CanvasComponent implements OnInit {
 
   adjustLandingAnimation() {
     let border = Y_COORDINATE_BASE_LEVEL - 0.05 * Y_COORDINATE_BASE_LEVEL;
-    if (this.isLanding(border)) {
+    if (this.isLanding(border) && !this.mainChar.isHit) {
       let src =
         IMG_SRCs.charJump[++this.mainChar.jumpImg % IMG_SRCs.charJump.length];
       this.mainChar.charImageSrc = src;
@@ -901,13 +920,8 @@ export class CanvasComponent implements OnInit {
     this.mainChar.lastIdleStarted = new Date().getTime();
   }
 
-  resetWalk() {
-    this.mainChar.walkRightImg = 0;
-    this.mainChar.walkLeftImg = 0;
-  }
-
   adjustWalkAnimation() {
-    if (!this.mainChar.isJumping) {
+    if (!this.mainChar.isJumping && !this.mainChar.isHit) {
       let diff = new Date().getTime() - this.mainChar.lastWalkStarted;
       if (this.changeWalkAnimationDue(diff)) {
         this.changeWalkAnimation();
@@ -935,7 +949,7 @@ export class CanvasComponent implements OnInit {
 
   @HostListener('document:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
-    //console.log("key: " + e.key + " code: " + e.code);
+    AUDIO.BG_MUSIC.play();
     if (
       e.code === 'KeyD' &&
       this.mainChar.collBottles > 0 &&

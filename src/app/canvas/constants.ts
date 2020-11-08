@@ -12,7 +12,7 @@ export const RIGHT_BORDER = -6500;
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
 
-export const BOSS_X_START = 1000;
+export const BOSS_X_START = 5000;
 export const BOSS_Y_START = 225;
 
 export enum ENDBOSS_STATUS {
@@ -25,23 +25,19 @@ export enum ENDBOSS_STATUS {
 }
 
 export const CHICKEN_START_X_COORD = [
-  // 700,
-  // 1400,
-  // 1800,
-  // 2500,
-  // 3000,
-  // 3300,
-  // 3800,
-  // 4200,
-  // 4500,
+  700,
+  1400,
+  1800,
+  2500,
+  3000,
+  3300,
+  3800,
+  4200,
+  4500,
 ];
-export const COINS_START_X_COORD = [
-  // 500, 1200
-];
+export const COINS_START_X_COORD = [500, 1200];
 
-export const BOTTLE_START_X_COORD = [
-  // 500, 1000, 1700, 2500, 2800, 3000, 3300
-];
+export const BOTTLE_START_X_COORD = [500, 1000, 1700, 2500, 2800, 3000, 3300];
 
 //############################# Audio Sounds ############################
 export const AUDIO = {
@@ -100,6 +96,20 @@ export const IMG_SRCs: any = {
     'assets/img/character/jump/J-6.png',
     'assets/img/character/jump/J-7.png',
     'assets/img/character/jump/J-8.png',
+  ],
+  charHit: [
+    'assets/img/character/hit/H-0.png',
+    'assets/img/character/hit/H-1.png',
+    'assets/img/character/hit/H-2.png',
+  ],
+  charDead: [
+    'assets/img/character/dead/D-0.png',
+    'assets/img/character/dead/D-1.png',
+    'assets/img/character/dead/D-2.png',
+    'assets/img/character/dead/D-3.png',
+    'assets/img/character/dead/D-4.png',
+    'assets/img/character/dead/D-5.png',
+    'assets/img/character/dead/D-6.png',
   ],
   bg_complete: 'assets/img/background/Completo.png',
   bg_1: 'assets/img/background/background_1.png',
@@ -192,18 +202,19 @@ export type MainCharacter = {
   isFalling: boolean;
   isRunningRight: boolean;
   isRunningLeft: boolean;
+  isHit: boolean;
   lastJumpStarted: number;
   lastJumpAnimationStarted: number;
   lastIdleStarted: number;
   lastWalkStarted: number;
   lastHitHappened: number;
+  lastHitAnimation: number;
   charImage: HTMLImageElement;
   charImageSrc: string;
   idleImg: number;
   walkImg: number;
-  walkRightImg: number;
-  walkLeftImg: number;
   jumpImg: number;
+  hitImg: number;
   collBottles: number;
   collCoins: number;
   lastBottleThrowTime: number;

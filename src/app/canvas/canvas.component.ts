@@ -44,6 +44,7 @@ export class CanvasComponent implements OnInit {
     x_coordinate: X_COORDINATE_BASE_LEVEL,
     y_coordinate: Y_COORDINATE_BASE_LEVEL,
     isIdle: true,
+    isLongIdle: true,
     isJumping: false,
     isFalling: false,
     isRunningRight: false,
@@ -105,8 +106,6 @@ export class CanvasComponent implements OnInit {
   /*
   TODOs
   * + Start Screen
-  * + endboss objekt erstellen mit eigenem Type in constants ordner
-  * + Endboss:
   * + Sound für aufeinanderfolgenden Flaschenwurf abspielen
   * + Main Character:
   *   # Long_Idle hinzufügen für wartenden Character
@@ -114,7 +113,6 @@ export class CanvasComponent implements OnInit {
   *   Marcadorvida_enemy
   *       --> Was ist der Kontext dafür? Ist das die lebensanzeige 
   *           für normale Gegner
-  *   Coins sind einfach so zum einsammeln oder?
   *   Gibt es eine Win-Screen Grafik?
   * -------------------------------------------------
   * Gedanken zu weiteren Themen:
@@ -183,6 +181,13 @@ export class CanvasComponent implements OnInit {
     setInterval(() => {
       if (this.mainChar.isIdle && !this.mainChar.isHit && !this.charLostAt) {
         this.updateIdleState();
+      }
+      if (
+        this.mainChar.isLongIdle &&
+        !this.mainChar.isHit &&
+        !this.charLostAt
+      ) {
+        this.updateLongIdleState();
       }
     }, 30);
   }
@@ -373,7 +378,7 @@ export class CanvasComponent implements OnInit {
 
   createCoins() {
     COINS_START_X_COORD.forEach((coin_x) => {
-      let rnd_y = 0;//Math.round(Math.random() * 250);
+      let rnd_y = 0; //Math.round(Math.random() * 250);
       let c = this.createCoin(coin_x, rnd_y);
       this.coins.push(c);
     });
@@ -834,9 +839,26 @@ export class CanvasComponent implements OnInit {
   updateIdleState() {
     let diff = new Date().getTime() - this.mainChar.lastIdleStarted;
     if (diff > IDLE_ANIMATION_SWITCH) {
+      let n = IMG_SRCs.charIdle.length;
+      if (this.mainChar.idleImg < n) {
+        let src =
+          IMG_SRCs.charIdle[this.mainChar.idleImg++ % IMG_SRCs.charIdle.length];
+        this.mainChar.imgSrc = src;
+        this.mainChar.lastIdleStarted = new Date().getTime();
+      } else {
+        this.mainChar.isIdle = false;
+        this.mainChar.isLongIdle = true;
+        this.mainChar.idleImg = 0;
+      }
+    }
+  }
+
+  updateLongIdleState() {
+    let diff = new Date().getTime() - this.mainChar.lastIdleStarted;
+    if (diff > IDLE_ANIMATION_SWITCH) {
       let src =
-        IMG_SRCs.charIdle[
-          this.incrImgCount(++this.mainChar.idleImg, IMG_SRCs.charIdle.length)
+        IMG_SRCs.charLongIdle[
+          this.mainChar.idleImg++ % IMG_SRCs.charLongIdle.length
         ];
       this.mainChar.imgSrc = src;
       this.mainChar.lastIdleStarted = new Date().getTime();
@@ -880,7 +902,7 @@ export class CanvasComponent implements OnInit {
 
   adjustLandingAnimation() {
     let border = Y_COORDINATE_BASE_LEVEL - 0.05 * Y_COORDINATE_BASE_LEVEL;
-    if (this.isLanding(border) && !this.mainChar.isHit && !this.charLostAt)  {
+    if (this.isLanding(border) && !this.mainChar.isHit && !this.charLostAt) {
       let src =
         IMG_SRCs.charJump[++this.mainChar.jumpImg % IMG_SRCs.charJump.length];
       this.mainChar.imgSrc = src;

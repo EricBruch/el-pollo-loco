@@ -3,7 +3,7 @@ export const JUMP_TIME = 300; // in ms
 export const JUMP_SPEED = 10;
 export const JUMP_ANIMATION_SWITCH = JUMP_TIME / 8; // 37,5 // in ms
 export const WALK_SPEED = 7;
-export const IDLE_ANIMATION_SWITCH = 8000; // in ms
+export const IDLE_ANIMATION_SWITCH = 3000; // in ms
 export const WALK_ANIMATION_SWITCH = 50; // in ms
 export const GRAVITY = 9.81;
 export const LEFT_BORDER = 100;
@@ -218,6 +218,7 @@ export type MainCharacter = {
   x_coordinate: number;
   y_coordinate: number;
   isIdle: boolean;
+  isLongIdle: boolean;
   isJumping: boolean;
   isFalling: boolean;
   isRunningRight: boolean;

@@ -33,6 +33,7 @@ import {
   ENDBOSS_STATUS,
   GAME_STATUS,
   loseImgs,
+  BOTTLE_STATUS,
 } from './constants';
 
 @Component({
@@ -88,7 +89,7 @@ export class CanvasComponent implements OnInit {
     placedB: BOTTLE_START_X_COORD,
     throwB_X: 0,
     throwB_Y: 0,
-    throwB_Status: 'inactive',
+    throwB_Status: BOTTLE_STATUS.inactive,
     throwB_ImgNr: 0,
   };
 
@@ -132,6 +133,7 @@ export class CanvasComponent implements OnInit {
     this.checkForAnimationEndboss();
     this.checkForAnimationCharacter();
     this.checkForLoseScreen();
+    this.checkThrowingBorder();
     this.draw();
   }
 
@@ -259,6 +261,28 @@ export class CanvasComponent implements OnInit {
       this.bg_elements += WALK_SPEED;
       this.adjustWalkAnimation();
     }
+  }
+
+  checkThrowingBorder() {
+    setInterval(() => {
+      if (
+        this.isThrowBottleActive() &&
+        (this.bottles.throwB_Y > Y_COORDINATE_BASE_LEVEL + 350 ||
+          this.bottles.throwB_X >
+            this.mainChar.x_coordinate - this.bg_elements + 800)
+      ) {
+        AUDIO.SMASH_BOTTLE.play();
+        this.bottles.throwB_Status = BOTTLE_STATUS.inactive;
+        this.bottles.throwB_ImgNr = 0;
+      }
+    }, 80);
+  }
+
+  isThrowBottleActive() {
+    return (
+      this.bottles.throwB_Status === BOTTLE_STATUS.splash ||
+      this.bottles.throwB_Status === BOTTLE_STATUS.throw
+    );
   }
 
   checkForAnimationEndboss() {
@@ -529,7 +553,7 @@ export class CanvasComponent implements OnInit {
     if (this.charLostAt) {
       this.drawLoseScreen();
     } else {
-      this.drawWinLooseScreen();
+      this.drawWinScreen();
     }
   }
 
@@ -564,12 +588,15 @@ export class CanvasComponent implements OnInit {
 
   drawThrowBottle() {
     switch (this.bottles.throwB_Status) {
-      case 'throw':
+      case BOTTLE_STATUS.throw:
         this.moveThrowBottle();
         break;
 
-      case 'splash':
-        this.splashThrowBottle();
+      case BOTTLE_STATUS.splash:
+        this.splashAnimationBottle();
+        break;
+
+      case BOTTLE_STATUS.inactive:
         break;
 
       default:
@@ -592,7 +619,7 @@ export class CanvasComponent implements OnInit {
     );
   }
 
-  splashThrowBottle() {
+  splashAnimationBottle() {
     if (this.bottles.throwB_ImgNr < IMG_SRCs.bottlesSplash.length) {
       this.addNonMoveableObject(
         IMG_SRCs.bottlesSplash[this.bottles.throwB_ImgNr++],
@@ -602,7 +629,7 @@ export class CanvasComponent implements OnInit {
         1
       );
     } else {
-      this.bottles.throwB_Status = 'inactive';
+      this.bottles.throwB_Status = BOTTLE_STATUS.inactive;
       this.bottles.throwB_ImgNr = 0;
       this.bottles.throwB_X = -2000;
       this.bottles.throwB_Y = 2000;
@@ -639,7 +666,7 @@ export class CanvasComponent implements OnInit {
     }
   }
 
-  drawWinLooseScreen() {
+  drawWinScreen() {
     this.context.font = '120px Kalam';
     this.context.fillText('You won!', 250, 200);
   }
@@ -764,7 +791,7 @@ export class CanvasComponent implements OnInit {
     ) {
       if (this.endboss.live > 0) {
         AUDIO.SMASH_BOTTLE.play();
-        this.bottles.throwB_Status = 'splash';
+        this.bottles.throwB_Status = BOTTLE_STATUS.splash;
         this.bottles.throwB_ImgNr = 0;
         this.endboss.live -= 10;
         this.endboss.lastHitTakenAt = new Date().getTime();
@@ -1086,7 +1113,7 @@ export class CanvasComponent implements OnInit {
       this.mainChar.collBottles--;
       this.mainChar.lastBottleThrowTime = new Date().getTime();
       AUDIO.THROW_BOTTLE.play();
-      this.bottles.throwB_Status = 'throw';
+      this.bottles.throwB_Status = BOTTLE_STATUS.throw;
     }
 
     if (e.code === 'ArrowLeft') {

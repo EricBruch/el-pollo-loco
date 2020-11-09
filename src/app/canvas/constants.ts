@@ -30,6 +30,12 @@ export enum GAME_STATUS {
   end = 'end',
 }
 
+export enum BOTTLE_STATUS {
+  throw = 'throw',
+  splash = 'splash',
+  inactive = 'inactive',
+}
+
 export const CHICKEN_START_X_COORD = [
   1000,
   // 1400,
@@ -53,7 +59,7 @@ export const COINS_START_X_COORD = [
 ];
 
 export const BOTTLE_START_X_COORD = [
-  // 500,
+  500,
   // 1000,
   // 1100,
   // 1200,

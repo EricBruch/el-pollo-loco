@@ -25,7 +25,7 @@ export enum ENDBOSS_STATUS {
 }
 
 export const CHICKEN_START_X_COORD = [
-  1000,
+  // 1000,
   // 1400,
   // 1800,
   // 2500,
@@ -36,7 +36,7 @@ export const CHICKEN_START_X_COORD = [
   // 4500,
 ];
 export const COINS_START_X_COORD = [
-  // 500,
+  // 800,
   // 1200,
   // 1800,
   // 1900,

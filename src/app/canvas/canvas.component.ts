@@ -110,8 +110,6 @@ export class CanvasComponent implements OnInit {
   * + Sound für aufeinanderfolgenden Flaschenwurf abspielen
   * + Main Character:
   *   # Long_Idle hinzufügen für wartenden Character
-  *   # Animation hurt hinzufügen
-  *   # Animation dead hinzufügen
   * Frage an Junus:
   *   Marcadorvida_enemy
   *       --> Was ist der Kontext dafür? Ist das die lebensanzeige 
@@ -375,7 +373,7 @@ export class CanvasComponent implements OnInit {
 
   createCoins() {
     COINS_START_X_COORD.forEach((coin_x) => {
-      let rnd_y = Math.round(Math.random() * 250);
+      let rnd_y = 0;//Math.round(Math.random() * 250);
       let c = this.createCoin(coin_x, rnd_y);
       this.coins.push(c);
     });
@@ -643,7 +641,7 @@ export class CanvasComponent implements OnInit {
     for (let i = 0; i < this.coins.length; i++) {
       const coin = this.coins[i];
       let c_x = coin.pos_x + this.bg_elements;
-      if (this.isInCollisionWith(c_x, 220)) {
+      if (this.isInCollisionWith(c_x, coin.pos_y - 200)) {
         this.mainChar.collCoins++;
         this.coins.splice(i, 1);
         AUDIO.COLL_COIN.play();

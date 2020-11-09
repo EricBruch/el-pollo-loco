@@ -111,18 +111,10 @@ export class CanvasComponent implements OnInit {
   };
   /*
   TODOs
-  * + Start Screen
   * + Sound für aufeinanderfolgenden Flaschenwurf abspielen
-  * Frage an Junus:
-  *   Marcadorvida_enemy
-  *       --> Was ist der Kontext dafür? Ist das die lebensanzeige 
-  *           für normale Gegner
-  *   Gibt es eine Win-Screen Grafik?
   * -------------------------------------------------
   * Gedanken zu weiteren Themen:
   *   # Vollbildmodus
-  *   # 
-  *
 */
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
@@ -183,23 +175,9 @@ export class CanvasComponent implements OnInit {
 
   checkForRunning() {
     setInterval(() => {
-      if (
-        this.mainChar.isRunningRight == true &&
-        this.bg_elements > RIGHT_BORDER &&
-        !this.charLostAt
-      ) {
-        this.adjustAudioForJump();
-        this.bg_elements -= WALK_SPEED;
-        this.adjustWalkAnimation();
-      }
-      if (
-        this.mainChar.isRunningLeft == true &&
-        this.bg_elements < LEFT_BORDER &&
-        !this.charLostAt
-      ) {
-        this.adjustAudioForJump();
-        this.bg_elements += WALK_SPEED;
-        this.adjustWalkAnimation();
+      if (this.gameStarted && !this.charLostAt) {
+        this.checkRunningLeft();
+        this.checkRunningRight();
       }
     }, 20);
   }
@@ -262,6 +240,25 @@ export class CanvasComponent implements OnInit {
         }
       }
     }, 30);
+  }
+
+  checkRunningLeft() {
+    if (
+      this.mainChar.isRunningRight == true &&
+      this.bg_elements > RIGHT_BORDER
+    ) {
+      this.adjustAudioForJump();
+      this.bg_elements -= WALK_SPEED;
+      this.adjustWalkAnimation();
+    }
+  }
+
+  checkRunningRight() {
+    if (this.mainChar.isRunningLeft == true && this.bg_elements < LEFT_BORDER) {
+      this.adjustAudioForJump();
+      this.bg_elements += WALK_SPEED;
+      this.adjustWalkAnimation();
+    }
   }
 
   checkForAnimationEndboss() {

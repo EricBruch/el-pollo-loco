@@ -31,6 +31,8 @@ import {
   Coin,
   EndBoss,
   ENDBOSS_STATUS,
+  GAME_STATUS,
+  loseImgs,
 } from './constants';
 
 @Component({
@@ -68,8 +70,12 @@ export class CanvasComponent implements OnInit {
     lastBottleThrowTime: 0,
   };
 
+  gameStarted = false;
   gameFinished = false;
   charLostAt = undefined;
+
+  startImage = new Image();
+  loseScreenImg = 0;
 
   bg_elements: number = 0;
   background_image = new Image();
@@ -107,8 +113,6 @@ export class CanvasComponent implements OnInit {
   TODOs
   * + Start Screen
   * + Sound für aufeinanderfolgenden Flaschenwurf abspielen
-  * + Main Character:
-  *   # Long_Idle hinzufügen für wartenden Character
   * Frage an Junus:
   *   Marcadorvida_enemy
   *       --> Was ist der Kontext dafür? Ist das die lebensanzeige 
@@ -135,15 +139,46 @@ export class CanvasComponent implements OnInit {
     this.calculateChickenPosition();
     this.checkForAnimationEndboss();
     this.checkForAnimationCharacter();
+    this.checkForLoseScreen();
     this.draw();
   }
 
   loadResources() {
     this.setupImgCache();
+    this.loadAdditionalImgs();
     this.createCoins();
-    this.background_image.src = IMG_SRCs.bg_complete;
     this.createChickens();
     this.initalizeSound();
+  }
+
+  loadAdditionalImgs() {
+    this.background_image.src = IMG_SRCs.bg_complete;
+    this.startImage.src = IMG_SRCs.startScreen[0];
+    this.loadLoseScreenImg();
+  }
+
+  loadLoseScreenImg() {
+    for (let i = 0; i < IMG_SRCs.endScreen.length; i++) {
+      const src = IMG_SRCs.endScreen[i];
+      let img = new Image();
+      img.src = src;
+      loseImgs.push(img);
+    }
+  }
+
+  checkForLoseScreen() {
+    let time = 1000;
+    setInterval(() => {
+      if (this.charLostAt) {
+        setInterval(() => {
+          if (this.loseScreenImg < IMG_SRCs.endScreen.length - 1) {
+            this.loseScreenImg++;
+          } else {
+            this.loseScreenImg = 0;
+          }
+        }, time);
+      }
+    }, time);
   }
 
   checkForRunning() {
@@ -431,19 +466,23 @@ export class CanvasComponent implements OnInit {
   draw() {
     let drawFunction = () => this.draw();
     requestAnimationFrame(drawFunction);
-    this.drawBackgroundPicture();
-    if (this.gameFinished) {
-      this.drawEndScreen();
-    } else {
-      this.updateCharacter();
-      this.drawChicken();
-      this.drawBottles();
-      this.drawCoins();
-      this.drawItemOverview();
-      this.drawThrowBottle();
+    let status = this.getGameStatus();
+    switch (status) {
+      case GAME_STATUS.start:
+        this.drawstartScreen();
+        break;
+
+      case GAME_STATUS.play:
+        this.drawPlayScreens();
+        break;
+
+      case GAME_STATUS.end:
+        this.drawEndScreen();
+        break;
+
+      default:
+        break;
     }
-    this.updateCharacter();
-    this.drawEndBoss();
   }
 
   updateCharacter() {
@@ -469,6 +508,42 @@ export class CanvasComponent implements OnInit {
     if (this.mainChar.isRunningLeft) {
       this.context.restore();
     }
+  }
+
+  drawstartScreen() {
+    let canvas = this.myCanvas.nativeElement;
+    this.addBGPicture(this.startImage, 0, 0, canvas.width, canvas.height, 1, 1);
+  }
+
+  drawPlayScreens() {
+    this.drawBackgroundPicture();
+    this.updateCharacter();
+    this.drawChicken();
+    this.drawBottles();
+    this.drawCoins();
+    this.drawItemOverview();
+    this.drawThrowBottle();
+    this.drawEndBoss();
+  }
+
+  drawEndScreen() {
+    this.drawBackgroundPicture();
+    this.drawEndBoss();
+    if (this.charLostAt) {
+      this.drawLoseScreen();
+    } else {
+      this.drawWinLooseScreen();
+    }
+  }
+
+  getGameStatus() {
+    if (!this.gameStarted) {
+      return GAME_STATUS.start;
+    }
+    if (!this.gameFinished) {
+      return GAME_STATUS.play;
+    }
+    return GAME_STATUS.end;
   }
 
   initalizeSound() {
@@ -567,10 +642,23 @@ export class CanvasComponent implements OnInit {
     }
   }
 
-  drawEndScreen() {
-    let msg = this.charLostAt > 0 ? 'You lost' : 'You won!';
+  drawWinLooseScreen() {
     this.context.font = '120px Kalam';
-    this.context.fillText(msg, 250, 200);
+    this.context.fillText('You won!', 250, 200);
+  }
+
+  drawLoseScreen() {
+    let img = loseImgs[this.loseScreenImg];
+    let canvas = this.myCanvas.nativeElement;
+    this.addBGPicture(
+      img,
+      0 - this.bg_elements,
+      0,
+      canvas.width,
+      canvas.height,
+      1,
+      1
+    );
   }
 
   mirrorImg() {
@@ -988,6 +1076,9 @@ export class CanvasComponent implements OnInit {
   @HostListener('document:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
     AUDIO.BG_MUSIC.play();
+    if (e.code === 'Enter') {
+      this.gameStarted = true;
+    }
     if (
       e.code === 'KeyD' &&
       this.mainChar.collBottles > 0 &&

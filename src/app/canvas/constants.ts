@@ -24,8 +24,14 @@ export enum ENDBOSS_STATUS {
   adjust = 'adjust',
 }
 
+export enum GAME_STATUS {
+  start = 'start',
+  play = 'play',
+  end = 'end',
+}
+
 export const CHICKEN_START_X_COORD = [
-  // 1000,
+  1000,
   // 1400,
   // 1800,
   // 2500,
@@ -58,6 +64,8 @@ export const BOTTLE_START_X_COORD = [
   // 3000,
   // 3300,
 ];
+
+export const loseImgs = [];
 
 //############################# Audio Sounds ############################
 export const AUDIO = {
@@ -134,6 +142,16 @@ export const IMG_SRCs: any = {
   bg_complete: 'assets/img/background/Completo.png',
   bg_1: 'assets/img/background/background_1.png',
   bg_2: 'assets/img/background/background_2.png',
+  startScreen: [
+    'assets/img/background/startscreen/start-0.png',
+    'assets/img/background/startscreen/start-1.png',
+  ],
+  endScreen: [
+    'assets/img/background/endscreen/0-you_lost.png',
+    'assets/img/background/endscreen/1-oh_no_you_lost.png',
+    'assets/img/background/endscreen/2-Game_over.png',
+    'assets/img/background/endscreen/3-Game_over.png',
+  ],
   gallinitaWalk: [
     'assets/img/enemies/gallinita/walk/0-Ga-walk-right.png',
     'assets/img/enemies/gallinita/walk/1-Ga-walk-center.png',

@@ -812,9 +812,11 @@ export class CanvasComponent implements OnInit {
 
   calculateChickenPosition() {
     setInterval(() => {
-      for (let i = 0; i < this.chickens.length; i++) {
-        let chicken = this.chickens[i];
-        chicken.pos_x -= this.chickens[i].speed;
+      if (this.gameStarted) {
+        for (let i = 0; i < this.chickens.length; i++) {
+          let chicken = this.chickens[i];
+          chicken.pos_x -= this.chickens[i].speed;
+        }
       }
     }, 200);
   }

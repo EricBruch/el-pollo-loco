@@ -25,19 +25,39 @@ export enum ENDBOSS_STATUS {
 }
 
 export const CHICKEN_START_X_COORD = [
-  700,
-  1400,
-  1800,
-  2500,
-  3000,
-  3300,
-  3800,
-  4200,
-  4500,
+  1000,
+  // 1400,
+  // 1800,
+  // 2500,
+  // 3000,
+  // 3300,
+  // 3800,
+  // 4200,
+  // 4500,
 ];
-export const COINS_START_X_COORD = [500, 1200];
+export const COINS_START_X_COORD = [
+  // 500,
+  // 1200,
+  // 1800,
+  // 1900,
+  // 2000,
+  // 2100,
+  // 2500,
+  // 2600,
+];
 
-export const BOTTLE_START_X_COORD = [500, 1000, 1700, 2500, 2800, 3000, 3300];
+export const BOTTLE_START_X_COORD = [
+  // 500,
+  // 1000,
+  // 1100,
+  // 1200,
+  // 1700,
+  // 2000,
+  // 2500,
+  // 2800,
+  // 3000,
+  // 3300,
+];
 
 //############################# Audio Sounds ############################
 export const AUDIO = {
@@ -194,7 +214,7 @@ export let imgCache = [];
 
 /*         Main Character             */
 export type MainCharacter = {
-  charLives: number;
+  lives: number;
   x_coordinate: number;
   y_coordinate: number;
   isIdle: boolean;
@@ -209,12 +229,13 @@ export type MainCharacter = {
   lastWalkStarted: number;
   lastHitHappened: number;
   lastHitAnimation: number;
-  charImage: HTMLImageElement;
-  charImageSrc: string;
+  img: HTMLImageElement;
+  imgSrc: string;
   idleImg: number;
   walkImg: number;
   jumpImg: number;
   hitImg: number;
+  deadImg: number;
   collBottles: number;
   collCoins: number;
   lastBottleThrowTime: number;

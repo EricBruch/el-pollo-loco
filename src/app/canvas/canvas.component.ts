@@ -40,7 +40,7 @@ import {
 })
 export class CanvasComponent implements OnInit {
   mainChar: MainCharacter = {
-    charLives: 2,
+    lives: 2,
     x_coordinate: X_COORDINATE_BASE_LEVEL,
     y_coordinate: Y_COORDINATE_BASE_LEVEL,
     isIdle: true,
@@ -55,12 +55,13 @@ export class CanvasComponent implements OnInit {
     lastWalkStarted: 0,
     lastHitHappened: 0,
     lastHitAnimation: 0,
-    charImage: new Image(),
-    charImageSrc: IMG_SRCs.charIdle[0],
+    img: new Image(),
+    imgSrc: IMG_SRCs.charIdle[0],
     idleImg: 0,
     walkImg: 0,
     jumpImg: 0,
     hitImg: 0,
+    deadImg: 0,
     collBottles: 50,
     collCoins: 0,
     lastBottleThrowTime: 0,
@@ -153,7 +154,8 @@ export class CanvasComponent implements OnInit {
     setInterval(() => {
       if (
         this.mainChar.isRunningRight == true &&
-        this.bg_elements > RIGHT_BORDER
+        this.bg_elements > RIGHT_BORDER &&
+        !this.charLostAt
       ) {
         this.adjustAudioForJump();
         this.bg_elements -= WALK_SPEED;
@@ -161,7 +163,8 @@ export class CanvasComponent implements OnInit {
       }
       if (
         this.mainChar.isRunningLeft == true &&
-        this.bg_elements < LEFT_BORDER
+        this.bg_elements < LEFT_BORDER &&
+        !this.charLostAt
       ) {
         this.adjustAudioForJump();
         this.bg_elements += WALK_SPEED;
@@ -180,7 +183,7 @@ export class CanvasComponent implements OnInit {
 
   checkForIdle() {
     setInterval(() => {
-      if (this.mainChar.isIdle && !this.mainChar.isHit) {
+      if (this.mainChar.isIdle && !this.mainChar.isHit && !this.charLostAt) {
         this.updateIdleState();
       }
     }, 30);
@@ -191,6 +194,7 @@ export class CanvasComponent implements OnInit {
     this.checkForJump();
     this.checkForIdle();
     this.checkCharacterHit();
+    this.checkCharacterDead();
   }
 
   checkCharacterHit() {
@@ -199,11 +203,24 @@ export class CanvasComponent implements OnInit {
       if (this.mainChar.isHit && timePassed > 70) {
         let n = this.mainChar.hitImg++;
         if (n < IMG_SRCs.charHit.length) {
-          this.mainChar.charImageSrc = IMG_SRCs.charHit[n];
+          this.mainChar.imgSrc = IMG_SRCs.charHit[n];
           this.mainChar.lastHitAnimation = new Date().getTime();
         } else {
           this.mainChar.hitImg = 0;
           this.mainChar.isHit = false;
+        }
+      }
+    }, 30);
+  }
+
+  checkCharacterDead() {
+    setInterval(() => {
+      let timePassed = new Date().getTime() - this.charLostAt;
+      if (this.charLostAt && timePassed > 100) {
+        let n = this.mainChar.deadImg++;
+        if (n < IMG_SRCs.charDead.length) {
+          this.mainChar.imgSrc = IMG_SRCs.charDead[n];
+          this.charLostAt = new Date().getTime();
         }
       }
     }, 30);
@@ -398,13 +415,13 @@ export class CanvasComponent implements OnInit {
   }
 
   getImgFromCache(src_path: string) {
-    this.mainChar.charImage = imgCache.find((img) => {
+    this.mainChar.img = imgCache.find((img) => {
       img.src.endsWith(src_path);
     });
     // create new Image if not found in cache
-    if (!this.mainChar.charImage) {
-      this.mainChar.charImage = new Image();
-      this.mainChar.charImage.src = src_path;
+    if (!this.mainChar.img) {
+      this.mainChar.img = new Image();
+      this.mainChar.img.src = src_path;
     }
   }
 
@@ -422,28 +439,28 @@ export class CanvasComponent implements OnInit {
       this.drawItemOverview();
       this.drawThrowBottle();
     }
+    this.updateCharacter();
     this.drawEndBoss();
   }
 
   updateCharacter() {
-    this.getImgFromCache(this.mainChar.charImageSrc);
-    //console.log(this.mainChar.charImage);
+    this.getImgFromCache(this.mainChar.imgSrc);
 
     let xAdjustment = 0;
     let imgWidthAdjustment = 1;
     if (this.mainChar.isRunningLeft) {
       this.mirrorImg();
-      xAdjustment = this.mainChar.charImage.width * 0.35;
+      xAdjustment = this.mainChar.img.width * 0.35;
       imgWidthAdjustment = -1;
     }
     // draw character
-    if (this.mainChar.charImage.complete) {
+    if (this.mainChar.img.complete) {
       this.context.drawImage(
-        this.mainChar.charImage,
+        this.mainChar.img,
         this.mainChar.x_coordinate - xAdjustment,
         this.mainChar.y_coordinate,
-        this.mainChar.charImage.width * 0.35 * imgWidthAdjustment,
-        this.mainChar.charImage.height * 0.35
+        this.mainChar.img.width * 0.35 * imgWidthAdjustment,
+        this.mainChar.img.height * 0.35
       );
     }
     if (this.mainChar.isRunningLeft) {
@@ -464,7 +481,7 @@ export class CanvasComponent implements OnInit {
     this.context.fillText('x' + this.mainChar.collBottles, x_txt, 55);
 
     this.addNonMoveableObject(IMG_SRCs.heart, x_icon + 110, 0, 0.5, 1);
-    this.context.fillText('x' + this.mainChar.charLives, x_txt + 120, 55);
+    this.context.fillText('x' + this.mainChar.lives, x_txt + 120, 55);
 
     this.addNonMoveableObject(IMG_SRCs.coin, x_icon + 220, 0, 0.5, 1);
     this.context.fillText('x' + this.mainChar.collCoins, x_txt + 230, 55);
@@ -593,12 +610,12 @@ export class CanvasComponent implements OnInit {
       let c_x = c.pos_x + this.bg_elements;
       let timePassed = new Date().getTime() - this.mainChar.lastHitHappened;
       if (this.isInCollisionWith(c_x, 220) && timePassed > 2000) {
-        if (this.mainChar.charLives > 0) {
-          this.mainChar.charLives--;
+        if (this.mainChar.lives > 0) {
+          this.mainChar.lives--;
           this.mainChar.lastHitHappened = new Date().getTime();
           this.mainChar.isHit = true;
         }
-        if (this.mainChar.charLives <= 0) {
+        if (this.mainChar.lives <= 0) {
           this.charLostAt = new Date().getTime();
           this.gameFinished = true;
         }
@@ -644,8 +661,8 @@ export class CanvasComponent implements OnInit {
 
   isInCollisionWith(x: number, y: number) {
     return (
-      x - 60 < this.mainChar.x_coordinate &&
-      x + 60 > this.mainChar.x_coordinate &&
+      x - 130 < this.mainChar.x_coordinate &&
+      x + 30 > this.mainChar.x_coordinate &&
       this.mainChar.y_coordinate > y
     );
   }
@@ -680,8 +697,8 @@ export class CanvasComponent implements OnInit {
         this.endboss.pos_x + this.bg_elements + 100 &&
       timePassed > 1000
     ) {
-      if (this.mainChar.charLives > 1) {
-        this.mainChar.charLives--;
+      if (this.mainChar.lives > 1) {
+        this.mainChar.lives--;
         this.mainChar.lastHitHappened = new Date().getTime();
       } else {
         this.charLostAt = new Date().getTime();
@@ -823,7 +840,7 @@ export class CanvasComponent implements OnInit {
         IMG_SRCs.charIdle[
           this.incrImgCount(++this.mainChar.idleImg, IMG_SRCs.charIdle.length)
         ];
-      this.mainChar.charImageSrc = src;
+      this.mainChar.imgSrc = src;
       this.mainChar.lastIdleStarted = new Date().getTime();
     }
   }
@@ -842,9 +859,10 @@ export class CanvasComponent implements OnInit {
     if (
       diffJumpAnim > JUMP_ANIMATION_SWITCH &&
       this.mainChar.jumpImg < 7 &&
-      !this.mainChar.isHit
+      !this.mainChar.isHit &&
+      !this.charLostAt
     ) {
-      this.mainChar.charImageSrc = IMG_SRCs.charJump[++this.mainChar.jumpImg];
+      this.mainChar.imgSrc = IMG_SRCs.charJump[++this.mainChar.jumpImg];
       this.mainChar.lastJumpAnimationStarted = new Date().getTime();
     }
   }
@@ -864,10 +882,10 @@ export class CanvasComponent implements OnInit {
 
   adjustLandingAnimation() {
     let border = Y_COORDINATE_BASE_LEVEL - 0.05 * Y_COORDINATE_BASE_LEVEL;
-    if (this.isLanding(border) && !this.mainChar.isHit) {
+    if (this.isLanding(border) && !this.mainChar.isHit && !this.charLostAt)  {
       let src =
         IMG_SRCs.charJump[++this.mainChar.jumpImg % IMG_SRCs.charJump.length];
-      this.mainChar.charImageSrc = src;
+      this.mainChar.imgSrc = src;
     }
   }
 
@@ -911,7 +929,7 @@ export class CanvasComponent implements OnInit {
   changeWalkAnimation() {
     let src =
       IMG_SRCs.charWalk[this.mainChar.walkImg++ % IMG_SRCs.charWalk.length];
-    this.mainChar.charImageSrc = src;
+    this.mainChar.imgSrc = src;
     this.mainChar.lastWalkStarted = new Date().getTime();
   }
 
@@ -943,7 +961,7 @@ export class CanvasComponent implements OnInit {
   endRunningState() {
     this.resetIdle();
     this.mainChar.isIdle = true;
-    this.mainChar.charImageSrc = IMG_SRCs.charIdle[0];
+    this.mainChar.imgSrc = IMG_SRCs.charIdle[0];
     AUDIO.RUNNING.pause();
   }
 

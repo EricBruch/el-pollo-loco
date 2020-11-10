@@ -18,24 +18,23 @@ import {
   Y_COORDINATE_BASE_LEVEL,
   CHICKEN_START_X_COORD,
   IMG_SRCs,
-  MainCharacter,
-  Chicken,
   JUMP_ANIMATION_SWITCH,
   AUDIO,
-  Bottles,
   imgCache,
   LEFT_BORDER,
   RIGHT_BORDER,
   COINS_START_X_COORD,
   BOTTLE_START_X_COORD,
-  Coin,
-  EndBoss,
   ENDBOSS_STATUS,
   GAME_STATUS,
   loseImgs,
   BOTTLE_STATUS,
 } from './constants';
-
+import { Coin } from './types/coin.type';
+import { Chicken } from './types/chicken.type';
+import { MainCharacter } from './types/mainChar.type';
+import { EndBoss } from './types/endboss.type';
+import { Bottles } from "./types/bottles.type";
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
@@ -434,7 +433,7 @@ export class CanvasComponent implements OnInit {
 
   createCoins() {
     COINS_START_X_COORD.forEach((coin_x) => {
-      let rnd_y = 0; //Math.round(Math.random() * 250);
+      let rnd_y = Math.round(Math.random() * 250);
       let c = this.createCoin(coin_x, rnd_y);
       this.coins.push(c);
     });

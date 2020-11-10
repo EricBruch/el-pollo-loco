@@ -71,8 +71,6 @@ export const BOTTLE_START_X_COORD = [
   // 3300,
 ];
 
-export const loseImgs = [];
-
 //############################# Audio Sounds ############################
 export const AUDIO = {
   RUNNING: new Audio('assets/audio/running.mp3'),
@@ -236,74 +234,4 @@ export const IMG_SRCs: any = {
 // ##################### Cache for images  ##################################
 export let imgCache = [];
 
-/*         Main Character             */
-export type MainCharacter = {
-  lives: number;
-  x_coordinate: number;
-  y_coordinate: number;
-  isIdle: boolean;
-  isLongIdle: boolean;
-  isJumping: boolean;
-  isFalling: boolean;
-  isRunningRight: boolean;
-  isRunningLeft: boolean;
-  isHit: boolean;
-  lastJumpStarted: number;
-  lastJumpAnimationStarted: number;
-  lastIdleStarted: number;
-  lastWalkStarted: number;
-  lastHitHappened: number;
-  lastHitAnimation: number;
-  img: HTMLImageElement;
-  imgSrc: string;
-  idleImg: number;
-  walkImg: number;
-  jumpImg: number;
-  hitImg: number;
-  deadImg: number;
-  collBottles: number;
-  collCoins: number;
-  lastBottleThrowTime: number;
-};
-
-export type Chicken = {
-  img: string;
-  pos_x: number;
-  pos_y: number;
-  scale: number;
-  opactiy: number;
-  speed: number;
-};
-
-export type Bottles = {
-  placedB: Array<number>;
-  throwB_X: number;
-  throwB_Y: number;
-  throwB_Status: string;
-  throwB_ImgNr: number;
-};
-
-export type Coin = {
-  pos_x: number;
-  pos_y: number;
-  scale: number;
-  opacity: number;
-};
-
-export type EndBoss = {
-  live: number;
-  defeatedAt: number;
-  lastHitTakenAt: number;
-  lastWalkAnimationAt: number;
-  lastHitAnimationAt: number;
-  status: string;
-  deathImgNr: number;
-  walkImgNr: number;
-  hurtImgNr: number;
-  alertImgNr: number;
-  attackImgNr: number;
-  moveLeft: boolean;
-  imgSrc: string;
-  pos_x: number;
-  pos_y: number;
-};
+export const loseImgs = [];

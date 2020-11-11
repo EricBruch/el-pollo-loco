@@ -34,7 +34,8 @@ import { Coin } from './types/coin.type';
 import { Chicken } from './types/chicken.type';
 import { MainCharacter } from './types/mainChar.type';
 import { EndBoss } from './types/endboss.type';
-import { Bottles } from "./types/bottles.type";
+import { Bottles } from './types/bottles.type';
+import { MainCharacter as mainChar } from './classes/mainCharacter/main-character';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
@@ -216,31 +217,39 @@ export class CanvasComponent implements OnInit {
 
   checkCharacterHit() {
     setInterval(() => {
-      let timePassed = new Date().getTime() - this.mainChar.lastHitAnimation;
-      if (this.mainChar.isHit && timePassed > 70) {
-        let n = this.mainChar.hitImg++;
-        if (n < IMG_SRCs.charHit.length) {
-          this.mainChar.imgSrc = IMG_SRCs.charHit[n];
-          this.mainChar.lastHitAnimation = new Date().getTime();
-        } else {
-          this.mainChar.hitImg = 0;
-          this.mainChar.isHit = false;
-        }
-      }
+      this.updateCharacterHit();
     }, 30);
+  }
+
+  updateCharacterHit() {
+    let timePassed = new Date().getTime() - this.mainChar.lastHitAnimation;
+    if (this.mainChar.isHit && timePassed > 70) {
+      let n = this.mainChar.hitImg++;
+      if (n < IMG_SRCs.charHit.length) {
+        this.mainChar.imgSrc = IMG_SRCs.charHit[n];
+        this.mainChar.lastHitAnimation = new Date().getTime();
+      } else {
+        this.mainChar.hitImg = 0;
+        this.mainChar.isHit = false;
+      }
+    }
   }
 
   checkCharacterDead() {
     setInterval(() => {
-      let timePassed = new Date().getTime() - this.charLostAt;
-      if (this.charLostAt && timePassed > 100) {
-        let n = this.mainChar.deadImg++;
-        if (n < IMG_SRCs.charDead.length) {
-          this.mainChar.imgSrc = IMG_SRCs.charDead[n];
-          this.charLostAt = new Date().getTime();
-        }
-      }
+      this.updateCharacterDead();
     }, 30);
+  }
+  
+  updateCharacterDead() {
+    let timePassed = new Date().getTime() - this.charLostAt;
+    if (this.charLostAt && timePassed > 100) {
+      let n = this.mainChar.deadImg++;
+      if (n < IMG_SRCs.charDead.length) {
+        this.mainChar.imgSrc = IMG_SRCs.charDead[n];
+        this.charLostAt = new Date().getTime();
+      }
+    }
   }
 
   checkRunningLeft() {
@@ -264,17 +273,21 @@ export class CanvasComponent implements OnInit {
 
   checkThrowingBorder() {
     setInterval(() => {
-      if (
-        this.isThrowBottleActive() &&
-        (this.bottles.throwB_Y > Y_COORDINATE_BASE_LEVEL + 350 ||
-          this.bottles.throwB_X >
-            this.mainChar.x_coordinate - this.bg_elements + 800)
-      ) {
-        AUDIO.SMASH_BOTTLE.play();
-        this.bottles.throwB_Status = BOTTLE_STATUS.inactive;
-        this.bottles.throwB_ImgNr = 0;
-      }
+      this.updateCheckThrowingBottle();
     }, 80);
+  }
+  
+  updateCheckThrowingBottle() {
+    if (
+      this.isThrowBottleActive() &&
+      (this.bottles.throwB_Y > Y_COORDINATE_BASE_LEVEL + 350 ||
+        this.bottles.throwB_X >
+          this.mainChar.x_coordinate - this.bg_elements + 800)
+    ) {
+      AUDIO.SMASH_BOTTLE.play();
+      this.bottles.throwB_Status = BOTTLE_STATUS.inactive;
+      this.bottles.throwB_ImgNr = 0;
+    }
   }
 
   isThrowBottleActive() {
@@ -379,7 +392,8 @@ export class CanvasComponent implements OnInit {
 
   adjustEndbossAttack() {
     this.adjustEndbossMovement(15);
-    let timePassed = new Date().getTime() - this.endboss.lastWalkAnimationAt;
+    let timePassed: number =
+      new Date().getTime() - this.endboss.lastWalkAnimationAt;
     if (timePassed > 80) {
       this.endboss.imgSrc =
         IMG_SRCs.giantGallinitaAttack[
@@ -978,10 +992,6 @@ export class CanvasComponent implements OnInit {
     }
   }
 
-  incrImgCount(imgCounter: number, countImages: number) {
-    return imgCounter % countImages;
-  }
-
   charJump(diffJump: number, diffJumpAnim: number) {
     this.mainChar.y_coordinate -= JUMP_SPEED;
     this.adjustJumpAnimation(diffJumpAnim);
@@ -1055,6 +1065,7 @@ export class CanvasComponent implements OnInit {
   charPerformsJump() {
     return this.mainChar.isJumping == true || this.mainChar.isFalling == true;
   }
+
   changeWalkAnimationDue(diff) {
     return diff > WALK_ANIMATION_SWITCH;
   }

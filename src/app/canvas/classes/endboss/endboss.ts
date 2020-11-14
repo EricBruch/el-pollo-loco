@@ -316,25 +316,4 @@ export class Endboss {
       }
     }
   }
-
-  public checkEndbossHit() {
-    let timePassed = new Date().getTime() - this.lastHitTakenAt;
-    if (
-      this.bottles.throwB_X > this.endboss.pos_x + this.bg_elements - 100 &&
-      this.bottles.throwB_X < this.endboss.pos_x + this.bg_elements + 100 &&
-      timePassed > 1000
-    ) {
-      if (this.endboss.live > 0) {
-        AUDIO.SMASH_BOTTLE.play();
-        this.bottles.throwB_Status = BOTTLE_STATUS.splash;
-        this.bottles.throwB_ImgNr = 0;
-        this.endboss.live -= 10;
-        this.endboss.lastHitTakenAt = new Date().getTime();
-        this.endboss.status = ENDBOSS_STATUS.hit;
-      } else if (this.endboss.defeatedAt == 0) {
-        this.endboss.defeatedAt = new Date().getTime();
-        this.finishLevel();
-      }
-    }
-  }
 }

@@ -8,6 +8,7 @@ export const WALK_ANIMATION_SWITCH = 50; // in ms
 export const GRAVITY = 9.81;
 export const LEFT_BORDER = 100;
 export const RIGHT_BORDER = -6500;
+export const CHARACTER_LIVES = 50;
 
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
@@ -36,39 +37,51 @@ export enum BOTTLE_STATUS {
   inactive = 'inactive',
 }
 
+export enum SCALING_FACTOR {
+  mainChar = 0.35,
+  coin = 0.75,
+  chicken = 0.3,
+}
+
+export enum X_COLLISION_ADJUSTMENT {
+  mainCharWithCoin = 140,
+  mainCharWithTabasco = 100,
+  mainCharWithChicken = 65,
+}
+
 export const CHICKEN_START_X_COORD = [
   1000,
-  // 1400,
-  // 1800,
-  // 2500,
-  // 3000,
-  // 3300,
-  // 3800,
-  // 4200,
-  // 4500,
+  1400,
+  1800,
+  2500,
+  3000,
+  3300,
+  3800,
+  4200,
+  4500,
 ];
 export const COINS_START_X_COORD = [
-  // 800,
-  // 1200,
-  // 1800,
-  // 1900,
-  // 2000,
-  // 2100,
-  // 2500,
-  // 2600,
+  800,
+  1200,
+  1800,
+  1900,
+  2000,
+  2100,
+  2500,
+  2600,
 ];
 
 export const BOTTLE_START_X_COORD = [
   500,
-  // 1000,
-  // 1100,
-  // 1200,
-  // 1700,
-  // 2000,
-  // 2500,
-  // 2800,
-  // 3000,
-  // 3300,
+  1000,
+  1100,
+  1200,
+  1700,
+  2000,
+  2500,
+  2800,
+  3000,
+  3300,
 ];
 
 //############################# Audio Sounds ############################
@@ -234,4 +247,4 @@ export const IMG_SRCs: any = {
 // ##################### Cache for images  ##################################
 export let imgCache = [];
 
-export const loseImgs = [];
+export let loseImgs = [];

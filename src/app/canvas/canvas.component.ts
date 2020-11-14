@@ -6,70 +6,38 @@ import {
   ViewChild,
 } from '@angular/core';
 import {
-  WALK_SPEED,
   JUMP_TIME,
-  JUMP_SPEED,
-  IDLE_ANIMATION_SWITCH,
-  WALK_ANIMATION_SWITCH,
   GRAVITY,
   BOSS_X_START,
   BOSS_Y_START,
-  X_COORDINATE_BASE_LEVEL,
   Y_COORDINATE_BASE_LEVEL,
   CHICKEN_START_X_COORD,
   IMG_SRCs,
-  JUMP_ANIMATION_SWITCH,
   AUDIO,
   imgCache,
-  LEFT_BORDER,
-  RIGHT_BORDER,
   COINS_START_X_COORD,
   BOTTLE_START_X_COORD,
   ENDBOSS_STATUS,
   GAME_STATUS,
   loseImgs,
   BOTTLE_STATUS,
+  SCALING_FACTOR,
+  X_COLLISION_ADJUSTMENT,
 } from './constants';
 import { Coin } from './types/coin.type';
 import { Chicken } from './types/chicken.type';
-import { MainCharacter } from './types/mainChar.type';
 import { EndBoss } from './types/endboss.type';
 import { Bottles } from './types/bottles.type';
 import { MainCharacter as mainChar } from './classes/mainCharacter/main-character';
+import { ImageCacheService } from '../services/image-cache.service';
+import { CollisionService } from '../services/Collision/collision.service';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
   styleUrls: ['./canvas.component.scss'],
 })
 export class CanvasComponent implements OnInit {
-  mainChar: MainCharacter = {
-    lives: 2,
-    x_coordinate: X_COORDINATE_BASE_LEVEL,
-    y_coordinate: Y_COORDINATE_BASE_LEVEL,
-    isIdle: true,
-    isLongIdle: true,
-    isJumping: false,
-    isFalling: false,
-    isRunningRight: false,
-    isRunningLeft: false,
-    isHit: false,
-    lastJumpStarted: 0,
-    lastJumpAnimationStarted: 0,
-    lastIdleStarted: 0,
-    lastWalkStarted: 0,
-    lastHitHappened: 0,
-    lastHitAnimation: 0,
-    img: new Image(),
-    imgSrc: IMG_SRCs.charIdle[0],
-    idleImg: 0,
-    walkImg: 0,
-    jumpImg: 0,
-    hitImg: 0,
-    deadImg: 0,
-    collBottles: 50,
-    collCoins: 0,
-    lastBottleThrowTime: 0,
-  };
+  CanvasMainCharacter: mainChar;
 
   gameStarted = false;
   gameFinished = false;
@@ -113,15 +81,23 @@ export class CanvasComponent implements OnInit {
   /*
   TODOs
   * + Sound für aufeinanderfolgenden Flaschenwurf abspielen
-  * -------------------------------------------------
-  * Gedanken zu weiteren Themen:
-  *   # Vollbildmodus
+  * + Animation Chicken
+  * + Animation Coins
+  * + Create Class for Bottles
+  *   + needs to hold y coordination
+  * 
+  * + dynamische Größe Canvas (Vollbildmodus)
 */
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
   public context: CanvasRenderingContext2D;
 
-  constructor() {}
+  constructor(
+    private ImageCacheService: ImageCacheService,
+    private CollisionService: CollisionService
+  ) {
+    this.CanvasMainCharacter = new mainChar(this, ImageCacheService);
+  }
 
   ngOnInit(): void {}
 
@@ -178,32 +154,22 @@ export class CanvasComponent implements OnInit {
   checkForRunning() {
     setInterval(() => {
       if (this.gameStarted && !this.charLostAt) {
-        this.checkRunningLeft();
-        this.checkRunningRight();
+        this.CanvasMainCharacter.updateRunningState();
       }
     }, 20);
   }
 
   checkForJump() {
     setInterval(() => {
-      if (this.charPerformsJump()) {
-        this.updateJumpCharacter();
+      if (this.CanvasMainCharacter.isInJumpProcess()) {
+        this.CanvasMainCharacter.updateJumpCharacter();
       }
     }, 10);
   }
 
   checkForIdle() {
     setInterval(() => {
-      if (this.mainChar.isIdle && !this.mainChar.isHit && !this.charLostAt) {
-        this.updateIdleState();
-      }
-      if (
-        this.mainChar.isLongIdle &&
-        !this.mainChar.isHit &&
-        !this.charLostAt
-      ) {
-        this.updateLongIdleState();
-      }
+      this.CanvasMainCharacter.updateCharacterIdle();
     }, 30);
   }
 
@@ -217,58 +183,17 @@ export class CanvasComponent implements OnInit {
 
   checkCharacterHit() {
     setInterval(() => {
-      this.updateCharacterHit();
+      this.CanvasMainCharacter.updateCharacterHit();
+      let x = this.ImageCacheService.getImgFromCache(
+        'assets/img/character/walk/W-0.png'
+      );
     }, 30);
-  }
-
-  updateCharacterHit() {
-    let timePassed = new Date().getTime() - this.mainChar.lastHitAnimation;
-    if (this.mainChar.isHit && timePassed > 70) {
-      let n = this.mainChar.hitImg++;
-      if (n < IMG_SRCs.charHit.length) {
-        this.mainChar.imgSrc = IMG_SRCs.charHit[n];
-        this.mainChar.lastHitAnimation = new Date().getTime();
-      } else {
-        this.mainChar.hitImg = 0;
-        this.mainChar.isHit = false;
-      }
-    }
   }
 
   checkCharacterDead() {
     setInterval(() => {
-      this.updateCharacterDead();
+      this.CanvasMainCharacter.updateCharacterDead();
     }, 30);
-  }
-  
-  updateCharacterDead() {
-    let timePassed = new Date().getTime() - this.charLostAt;
-    if (this.charLostAt && timePassed > 100) {
-      let n = this.mainChar.deadImg++;
-      if (n < IMG_SRCs.charDead.length) {
-        this.mainChar.imgSrc = IMG_SRCs.charDead[n];
-        this.charLostAt = new Date().getTime();
-      }
-    }
-  }
-
-  checkRunningLeft() {
-    if (
-      this.mainChar.isRunningRight == true &&
-      this.bg_elements > RIGHT_BORDER
-    ) {
-      this.adjustAudioForJump();
-      this.bg_elements -= WALK_SPEED;
-      this.adjustWalkAnimation();
-    }
-  }
-
-  checkRunningRight() {
-    if (this.mainChar.isRunningLeft == true && this.bg_elements < LEFT_BORDER) {
-      this.adjustAudioForJump();
-      this.bg_elements += WALK_SPEED;
-      this.adjustWalkAnimation();
-    }
   }
 
   checkThrowingBorder() {
@@ -276,13 +201,13 @@ export class CanvasComponent implements OnInit {
       this.updateCheckThrowingBottle();
     }, 80);
   }
-  
+
   updateCheckThrowingBottle() {
     if (
       this.isThrowBottleActive() &&
       (this.bottles.throwB_Y > Y_COORDINATE_BASE_LEVEL + 350 ||
         this.bottles.throwB_X >
-          this.mainChar.x_coordinate - this.bg_elements + 800)
+          this.CanvasMainCharacter.getLeftImgBorder() - this.bg_elements + 800)
     ) {
       AUDIO.SMASH_BOTTLE.play();
       this.bottles.throwB_Status = BOTTLE_STATUS.inactive;
@@ -421,15 +346,6 @@ export class CanvasComponent implements OnInit {
     }
   }
 
-  adjustAudioForJump() {
-    if (this.isInJumpProcess() && !AUDIO.RUNNING.paused) {
-      AUDIO.RUNNING.pause();
-    }
-    if (!this.isInJumpProcess() && AUDIO.RUNNING.paused) {
-      AUDIO.RUNNING.play();
-    }
-  }
-
   createChickens() {
     CHICKEN_START_X_COORD.forEach((chicken_X) => {
       let x = Math.round(Math.random());
@@ -457,16 +373,14 @@ export class CanvasComponent implements OnInit {
     let c: Coin = {
       pos_x: x,
       pos_y: Y_COORDINATE_BASE_LEVEL + y,
-      scale: 0.75,
+      scale: SCALING_FACTOR.coin,
       opacity: 1,
     };
     return c;
   }
 
   /**
-   * This Method takes all Images Sources from IMG_SRCs
-   * and loads all sources to images that are saved
-   * for fast acces in imgCache.
+   * Comment me !!
    */
   setupImgCache() {
     for (const imgCateg in IMG_SRCs) {
@@ -483,17 +397,6 @@ export class CanvasComponent implements OnInit {
         img.src = src;
         imgCache.push(img);
       }
-    }
-  }
-
-  getImgFromCache(src_path: string) {
-    this.mainChar.img = imgCache.find((img) => {
-      img.src.endsWith(src_path);
-    });
-    // create new Image if not found in cache
-    if (!this.mainChar.img) {
-      this.mainChar.img = new Image();
-      this.mainChar.img.src = src_path;
     }
   }
 
@@ -520,26 +423,26 @@ export class CanvasComponent implements OnInit {
   }
 
   updateCharacter() {
-    this.getImgFromCache(this.mainChar.imgSrc);
+    let img = this.CanvasMainCharacter.getMainCharImg();
 
     let xAdjustment = 0;
     let imgWidthAdjustment = 1;
-    if (this.mainChar.isRunningLeft) {
+    if (this.CanvasMainCharacter.isIsRunningLeft()) {
       this.mirrorImg();
-      xAdjustment = this.mainChar.img.width * 0.35;
+      xAdjustment = img.width * SCALING_FACTOR.mainChar;
       imgWidthAdjustment = -1;
     }
     // draw character
-    if (this.mainChar.img.complete) {
+    if (img.complete) {
       this.context.drawImage(
-        this.mainChar.img,
-        this.mainChar.x_coordinate - xAdjustment,
-        this.mainChar.y_coordinate,
-        this.mainChar.img.width * 0.35 * imgWidthAdjustment,
-        this.mainChar.img.height * 0.35
+        img,
+        this.CanvasMainCharacter.getLeftImgBorder() - xAdjustment,
+        this.CanvasMainCharacter.getUpperImgBorder(),
+        img.width * SCALING_FACTOR.mainChar * imgWidthAdjustment,
+        img.height * SCALING_FACTOR.mainChar
       );
     }
-    if (this.mainChar.isRunningLeft) {
+    if (this.CanvasMainCharacter.isIsRunningLeft()) {
       this.context.restore();
     }
   }
@@ -590,13 +493,25 @@ export class CanvasComponent implements OnInit {
     let x_txt = 45;
     this.context.font = '30px Kalam';
     this.addNonMoveableObject(IMG_SRCs.bottles[0], x_icon, 0, 0.2, 1);
-    this.context.fillText('x' + this.mainChar.collBottles, x_txt, 55);
+    this.context.fillText(
+      'x' + this.CanvasMainCharacter.collBottles,
+      x_txt,
+      55
+    );
 
     this.addNonMoveableObject(IMG_SRCs.heart, x_icon + 110, 0, 0.5, 1);
-    this.context.fillText('x' + this.mainChar.lives, x_txt + 120, 55);
+    this.context.fillText(
+      'x' + this.CanvasMainCharacter.getLives(),
+      x_txt + 120,
+      55
+    );
 
     this.addNonMoveableObject(IMG_SRCs.coin, x_icon + 220, 0, 0.5, 1);
-    this.context.fillText('x' + this.mainChar.collCoins, x_txt + 230, 55);
+    this.context.fillText(
+      'x' + this.CanvasMainCharacter.getCollCoins(),
+      x_txt + 230,
+      55
+    );
   }
 
   drawThrowBottle() {
@@ -618,7 +533,8 @@ export class CanvasComponent implements OnInit {
   }
 
   moveThrowBottle() {
-    let timePassed = new Date().getTime() - this.mainChar.lastBottleThrowTime;
+    let timePassed =
+      new Date().getTime() - this.CanvasMainCharacter.getLastBottleThrowTime();
     let g = Math.pow(GRAVITY, timePassed / 300);
     this.bottles.throwB_X = 225 + timePassed * 0.9;
     this.bottles.throwB_Y = 470 - (timePassed * 0.4 - g);
@@ -736,14 +652,29 @@ export class CanvasComponent implements OnInit {
   checkCollisionChicken() {
     this.chickens.forEach((c) => {
       let c_x = c.pos_x + this.bg_elements;
-      let timePassed = new Date().getTime() - this.mainChar.lastHitHappened;
-      if (this.isInCollisionWith(c_x, 220) && timePassed > 2000) {
-        if (this.mainChar.lives > 0) {
-          this.mainChar.lives--;
-          this.mainChar.lastHitHappened = new Date().getTime();
-          this.mainChar.isHit = true;
+      let src_path = this.ImageCacheService.getImgSrcPathByKey(
+        'gallinitaWalk',
+        0
+      );
+      let chickenImg = this.ImageCacheService.getImgFromCache(src_path);
+      let timePassed =
+        new Date().getTime() - this.CanvasMainCharacter.getLastHitHappened();
+      let hasCollision = this.CollisionService.areObjectsInCollision(
+        c_x,
+        c.pos_y,
+        chickenImg.width * SCALING_FACTOR.chicken -
+          X_COLLISION_ADJUSTMENT.mainCharWithChicken,
+        chickenImg.height * SCALING_FACTOR.chicken,
+        this.CanvasMainCharacter.getLeftImgBorder(),
+        this.CanvasMainCharacter.getUpperImgBorder(),
+        this.CanvasMainCharacter.getImgWidth(),
+        this.CanvasMainCharacter.getImgHeight()
+      );
+      if (hasCollision && timePassed > 2000) {
+        if (this.CanvasMainCharacter.getLives() > 0) {
+          this.CanvasMainCharacter.performCharHit();
         }
-        if (this.mainChar.lives <= 0) {
+        if (this.CanvasMainCharacter.getLives() <= 0) {
           this.charLostAt = new Date().getTime();
           this.gameFinished = true;
         }
@@ -754,26 +685,56 @@ export class CanvasComponent implements OnInit {
   checkCollisionTabasco() {
     for (let i = 0; i < this.bottles.placedB.length; i++) {
       let b_x = this.bottles.placedB[i].valueOf() + this.bg_elements;
-      if (this.isInCollisionWith(b_x, 220)) {
-        this.bottles.placedB.splice(i, 1);
+      let src_path = this.ImageCacheService.getImgSrcPathByKey('bottles', 0);
+      let bottleImg = this.ImageCacheService.getImgFromCache(src_path);
+      if (
+        this.CollisionService.areObjectsInCollision(
+          b_x,
+          250,
+          bottleImg.width - 0,
+          bottleImg.height,
+          this.CanvasMainCharacter.getLeftImgBorder(),
+          this.CanvasMainCharacter.getUpperImgBorder(),
+          this.CanvasMainCharacter.getImgWidth() -
+            X_COLLISION_ADJUSTMENT.mainCharWithTabasco,
+          this.CanvasMainCharacter.getImgHeight()
+        )
+      ) {
+        this.CanvasMainCharacter.collBottle(i);
         AUDIO.OPEN_BOTTLE.play();
-        this.mainChar.collBottles++;
       }
     }
   }
 
   checkCollisionEndboss() {
     this.checkEndbossHit();
-    this.checkEndbossCharacterHit();
+    this.checkEndbossTouchesCharacter();
   }
 
   checkCollisionCoins() {
     for (let i = 0; i < this.coins.length; i++) {
       const coin = this.coins[i];
       let c_x = coin.pos_x + this.bg_elements;
-      if (this.isInCollisionWith(c_x, coin.pos_y - 200)) {
-        this.mainChar.collCoins++;
-        this.coins.splice(i, 1);
+      let src_path = this.ImageCacheService.getImgSrcPathByKey('coins', 0);
+      let imgCoin = this.ImageCacheService.getImgFromCache(src_path);
+      let coinImgWidth = imgCoin.width * SCALING_FACTOR.coin - 0;
+      let coinImgHeight = imgCoin.height * SCALING_FACTOR.coin - 0;
+      let mainCharImgWidth =
+        this.CanvasMainCharacter.getImgWidth() -
+        X_COLLISION_ADJUSTMENT.mainCharWithCoin;
+      if (
+        this.CollisionService.areObjectsInCollision(
+          c_x,
+          coin.pos_y,
+          coinImgWidth,
+          coinImgHeight,
+          this.CanvasMainCharacter.getLeftImgBorder(),
+          this.CanvasMainCharacter.getUpperImgBorder(),
+          mainCharImgWidth,
+          this.CanvasMainCharacter.getImgHeight() - 0
+        )
+      ) {
+        this.CanvasMainCharacter.collectCoin(i);
         AUDIO.COLL_COIN.play();
       }
     }
@@ -785,14 +746,6 @@ export class CanvasComponent implements OnInit {
       AUDIO.WIN.play();
     }, 500);
     this.gameFinished = true;
-  }
-
-  isInCollisionWith(x: number, y: number) {
-    return (
-      x - 130 < this.mainChar.x_coordinate &&
-      x + 30 > this.mainChar.x_coordinate &&
-      this.mainChar.y_coordinate > y
-    );
   }
 
   checkEndbossHit() {
@@ -816,18 +769,18 @@ export class CanvasComponent implements OnInit {
     }
   }
 
-  checkEndbossCharacterHit() {
-    let timePassed = new Date().getTime() - this.mainChar.lastHitHappened;
+  checkEndbossTouchesCharacter() {
+    let timePassed =
+      new Date().getTime() - this.CanvasMainCharacter.getLastHitHappened();
     if (
-      this.mainChar.x_coordinate >
+      this.CanvasMainCharacter.getLeftImgBorder() >
         this.endboss.pos_x + this.bg_elements - 100 &&
-      this.mainChar.x_coordinate <
+      this.CanvasMainCharacter.getLeftImgBorder() <
         this.endboss.pos_x + this.bg_elements + 100 &&
       timePassed > 1000
     ) {
-      if (this.mainChar.lives > 1) {
-        this.mainChar.lives--;
-        this.mainChar.lastHitHappened = new Date().getTime();
+      if (this.CanvasMainCharacter.getLives() > 1) {
+        this.CanvasMainCharacter.performCharHit();
       } else {
         this.charLostAt = new Date().getTime();
         this.gameFinished = true;
@@ -952,196 +905,41 @@ export class CanvasComponent implements OnInit {
       img: src,
       pos_x: pos_x,
       pos_y: 595,
-      scale: 0.3,
+      scale: SCALING_FACTOR.chicken,
       opactiy: 1,
       speed: Math.random() * 15,
     };
     return c;
   }
 
-  /**
-   * This method checks if the character is Idle longer then the IDLE_ANIMATION_SWITCH difference
-   * if so the next img of Idle is shown
-   */
-  updateIdleState() {
-    let diff = new Date().getTime() - this.mainChar.lastIdleStarted;
-    if (diff > IDLE_ANIMATION_SWITCH) {
-      let n = IMG_SRCs.charIdle.length;
-      if (this.mainChar.idleImg < n) {
-        let src =
-          IMG_SRCs.charIdle[this.mainChar.idleImg++ % IMG_SRCs.charIdle.length];
-        this.mainChar.imgSrc = src;
-        this.mainChar.lastIdleStarted = new Date().getTime();
-      } else {
-        this.mainChar.isIdle = false;
-        this.mainChar.isLongIdle = true;
-        this.mainChar.idleImg = 0;
-      }
-    }
-  }
-
-  updateLongIdleState() {
-    let diff = new Date().getTime() - this.mainChar.lastIdleStarted;
-    if (diff > IDLE_ANIMATION_SWITCH) {
-      let src =
-        IMG_SRCs.charLongIdle[
-          this.mainChar.idleImg++ % IMG_SRCs.charLongIdle.length
-        ];
-      this.mainChar.imgSrc = src;
-      this.mainChar.lastIdleStarted = new Date().getTime();
-    }
-  }
-
-  charJump(diffJump: number, diffJumpAnim: number) {
-    this.mainChar.y_coordinate -= JUMP_SPEED;
-    this.adjustJumpAnimation(diffJumpAnim);
-    this.checkForJumpingPeak(diffJump);
-  }
-
-  adjustJumpAnimation(diffJumpAnim: number) {
-    if (
-      diffJumpAnim > JUMP_ANIMATION_SWITCH &&
-      this.mainChar.jumpImg < 7 &&
-      !this.mainChar.isHit &&
-      !this.charLostAt
-    ) {
-      this.mainChar.imgSrc = IMG_SRCs.charJump[++this.mainChar.jumpImg];
-      this.mainChar.lastJumpAnimationStarted = new Date().getTime();
-    }
-  }
-
-  checkForJumpingPeak(diffJump: number) {
-    if (diffJump > JUMP_TIME) {
-      this.mainChar.isJumping = false;
-      this.mainChar.isFalling = true;
-    }
-  }
-
-  charFall() {
-    this.mainChar.y_coordinate += JUMP_SPEED;
-    this.adjustLandingAnimation();
-    this.adjustIfJumpEnd();
-  }
-
-  adjustLandingAnimation() {
-    let border = Y_COORDINATE_BASE_LEVEL - 0.05 * Y_COORDINATE_BASE_LEVEL;
-    if (this.isLanding(border) && !this.mainChar.isHit && !this.charLostAt) {
-      let src =
-        IMG_SRCs.charJump[++this.mainChar.jumpImg % IMG_SRCs.charJump.length];
-      this.mainChar.imgSrc = src;
-    }
-  }
-
-  isInJumpProcess() {
-    return this.mainChar.isJumping == true || this.mainChar.isFalling == true;
-  }
-
-  isRunning() {
-    return (
-      this.mainChar.isRunningLeft == true ||
-      this.mainChar.isRunningRight == true
-    );
-  }
-
-  isLanding(border: number) {
-    return (
-      this.mainChar.y_coordinate < border &&
-      this.mainChar.jumpImg > 6 &&
-      this.mainChar.jumpImg < 9
-    );
-  }
-
-  adjustIfJumpEnd() {
-    if (this.mainChar.y_coordinate >= Y_COORDINATE_BASE_LEVEL) {
-      this.mainChar.isFalling = false;
-      this.mainChar.jumpImg = 0;
-      this.resetIdle();
-      if (!this.isRunning()) {
-        this.mainChar.isIdle = true;
-      }
-    }
-  }
-
-  charPerformsJump() {
-    return this.mainChar.isJumping == true || this.mainChar.isFalling == true;
-  }
-
-  changeWalkAnimationDue(diff) {
-    return diff > WALK_ANIMATION_SWITCH;
-  }
-
-  changeWalkAnimation() {
-    let src =
-      IMG_SRCs.charWalk[this.mainChar.walkImg++ % IMG_SRCs.charWalk.length];
-    this.mainChar.imgSrc = src;
-    this.mainChar.lastWalkStarted = new Date().getTime();
-  }
-
-  resetIdle() {
-    this.mainChar.idleImg = 0;
-    this.mainChar.lastIdleStarted = new Date().getTime();
-  }
-
-  adjustWalkAnimation() {
-    if (!this.mainChar.isJumping && !this.mainChar.isHit) {
-      let diff = new Date().getTime() - this.mainChar.lastWalkStarted;
-      if (this.changeWalkAnimationDue(diff)) {
-        this.changeWalkAnimation();
-      }
-    }
-  }
-
-  updateJumpCharacter() {
-    let diffJump = new Date().getTime() - this.mainChar.lastJumpStarted;
-    let diffJumpAnim =
-      new Date().getTime() - this.mainChar.lastJumpAnimationStarted;
-    if (this.mainChar.isJumping == true) {
-      this.charJump(diffJump, diffJumpAnim);
-    } else {
-      this.charFall();
-    }
-  }
-
-  endRunningState() {
-    this.resetIdle();
-    this.mainChar.isIdle = true;
-    this.mainChar.imgSrc = IMG_SRCs.charIdle[0];
-    AUDIO.RUNNING.pause();
-  }
-
   @HostListener('document:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
-    AUDIO.BG_MUSIC.play();
+    //AUDIO.BG_MUSIC.play();
     if (e.code === 'Enter') {
       this.gameStarted = true;
     }
     if (
       e.code === 'KeyD' &&
-      this.mainChar.collBottles > 0 &&
-      new Date().getTime() - this.mainChar.lastBottleThrowTime > 1000
+      this.CanvasMainCharacter.getCollBottles() > 0 &&
+      new Date().getTime() - this.CanvasMainCharacter.getLastBottleThrowTime() >
+        1000
     ) {
-      this.mainChar.collBottles--;
-      this.mainChar.lastBottleThrowTime = new Date().getTime();
-      AUDIO.THROW_BOTTLE.play();
+      this.CanvasMainCharacter.startBottleThrow();
       this.bottles.throwB_Status = BOTTLE_STATUS.throw;
     }
 
     if (e.code === 'ArrowLeft') {
-      this.mainChar.isRunningLeft = true;
-      this.mainChar.isIdle = false;
+      this.CanvasMainCharacter.startRunningLeft();
       AUDIO.RUNNING.play();
     }
     if (e.code == 'ArrowRight') {
-      this.mainChar.isRunningRight = true;
-      this.mainChar.isIdle = false;
+      this.CanvasMainCharacter.startRunningRight();
       AUDIO.RUNNING.play();
     }
     let timePassedSinceJump =
-      new Date().getTime() - this.mainChar.lastJumpStarted;
+      new Date().getTime() - this.CanvasMainCharacter.getLastJumpStarted();
     if (e.code == 'Space' && timePassedSinceJump > JUMP_TIME * 2) {
-      this.mainChar.lastJumpStarted = new Date().getTime();
-      this.mainChar.isJumping = true;
-      this.mainChar.isIdle = false;
+      this.CanvasMainCharacter.startJump();
       AUDIO.JUMP.play();
     }
   }
@@ -1149,12 +947,12 @@ export class CanvasComponent implements OnInit {
   @HostListener('document:keyup', ['$event'])
   onKeyUp(e: KeyboardEvent) {
     if (e.key === 'ArrowLeft') {
-      this.mainChar.isRunningLeft = false;
-      this.endRunningState();
+      this.CanvasMainCharacter.endRunningStateLeft();
+      AUDIO.RUNNING.pause();
     }
     if (e.key == 'ArrowRight') {
-      this.mainChar.isRunningRight = false;
-      this.endRunningState();
+      this.CanvasMainCharacter.endRunningStateRight();
+      AUDIO.RUNNING.pause();
     }
     // if (e.code == 'Space') {
     //   this.isJumping = false;

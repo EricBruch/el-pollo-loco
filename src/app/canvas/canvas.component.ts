@@ -12,15 +12,13 @@ import {
   CHICKEN_START_X_COORD,
   IMG_SRCs,
   AUDIO,
-  imgCache,
   BOTTLE_START_X_COORD,
   GAME_STATUS,
-  loseImgs,
   BOTTLE_STATUS,
   SCALING_FACTOR,
   X_COLLISION_ADJUSTMENT,
 } from './constants';
-import { coins } from './objects';
+import { coins, imgCache, loseImgs } from './objects';
 import { Chicken } from './types/chicken.type';
 import { Bottles } from './types/bottles.type';
 import { MainCharacter as mainChar } from './classes/mainCharacter/main-character';

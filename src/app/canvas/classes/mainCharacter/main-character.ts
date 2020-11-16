@@ -2,7 +2,6 @@ import {
   X_COORDINATE_BASE_LEVEL,
   Y_COORDINATE_BASE_LEVEL,
   IMG_SRCs,
-  imgCache,
   IDLE_ANIMATION_SWITCH,
   JUMP_SPEED,
   JUMP_ANIMATION_SWITCH,
@@ -16,7 +15,7 @@ import {
   CHARACTER_LIVES,
 } from './../../constants';
 import { ImageCacheService } from '../../../services/image-cache.service';
-import { coins } from '../../objects';
+import { coins, imgCache } from '../../objects';
 
 export class MainCharacter {
   private x_coordinate: number;

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { imgCache, IMG_SRCs } from '../canvas/constants';
+import { IMG_SRCs } from '../canvas/constants';
+import { imgCache } from "../canvas/objects";
 
 @Injectable({
   providedIn: 'root',

@@ -249,8 +249,3 @@ export const IMG_SRCs: any = {
     'assets/img/background/objects/coin/coins-2.png',
   ],
 };
-
-// ##################### Cache for images  ##################################
-export let imgCache = [];
-
-export let loseImgs = [];

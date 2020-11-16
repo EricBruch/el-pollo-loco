@@ -1,5 +1,5 @@
 export type Bottles = {
-  placedB: Array<number>;
+  //placedB: Array<number>;
   throwB_X: number;
   throwB_Y: number;
   throwB_Status: string;

@@ -9,17 +9,14 @@ import {
   JUMP_TIME,
   GRAVITY,
   Y_COORDINATE_BASE_LEVEL,
-  CHICKEN_START_X_COORD,
   IMG_SRCs,
   AUDIO,
-  BOTTLE_START_X_COORD,
   GAME_STATUS,
   BOTTLE_STATUS,
   SCALING_FACTOR,
   X_COLLISION_ADJUSTMENT,
 } from './constants';
-import { coins, imgCache, loseImgs } from './objects';
-import { Chicken } from './types/chicken.type';
+import { coins, imgCache, loseImgs, chickens, bottles } from './objects';
 import { Bottles } from './types/bottles.type';
 import { MainCharacter as mainChar } from './classes/mainCharacter/main-character';
 import { Endboss } from './classes/endboss/endboss';
@@ -32,6 +29,16 @@ import { LoadResourcesService } from '../services/loadResources/load-resources.s
   styleUrls: ['./canvas.component.scss'],
 })
 export class CanvasComponent implements OnInit {
+
+  constructor(
+    private ImageCacheService: ImageCacheService,
+    private CollisionService: CollisionService,
+    private loadResourcesService: LoadResourcesService
+  ) {
+    this.CanvasMainCharacter = new mainChar(this, ImageCacheService);
+    this.CanvasEndboss = new Endboss(this);
+  }
+
   CanvasMainCharacter: mainChar;
   CanvasEndboss: Endboss;
 
@@ -45,10 +52,8 @@ export class CanvasComponent implements OnInit {
   bg_elements: number = 0;
   background_image = new Image();
 
-  chickens = [];
-
   bottles: Bottles = {
-    placedB: BOTTLE_START_X_COORD,
+    //placedB: BOTTLE_START_X_COORD,
     throwB_X: 0,
     throwB_Y: 0,
     throwB_Status: BOTTLE_STATUS.inactive,
@@ -70,15 +75,6 @@ export class CanvasComponent implements OnInit {
   myCanvas: ElementRef<HTMLCanvasElement>;
   public context: CanvasRenderingContext2D;
 
-  constructor(
-    private ImageCacheService: ImageCacheService,
-    private CollisionService: CollisionService,
-    private loadResourcesService: LoadResourcesService
-  ) {
-    this.CanvasMainCharacter = new mainChar(this, ImageCacheService);
-    this.CanvasEndboss = new Endboss(this);
-  }
-
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
@@ -98,7 +94,6 @@ export class CanvasComponent implements OnInit {
     this.setupImgCache();
     this.loadAdditionalImgs();
     this.loadResourcesService.loadResources();
-    this.createChickens();
     this.initalizeSound();
   }
 
@@ -219,21 +214,6 @@ export class CanvasComponent implements OnInit {
         coin.adjustImgNr();
       });
     }, 100);
-  }
-
-  createChickens() {
-    CHICKEN_START_X_COORD.forEach((chicken_X) => {
-      let x = Math.round(Math.random());
-      if (x == 0) {
-        this.chickens.push(
-          this.createChicken(IMG_SRCs.gallinitaWalk[0], chicken_X)
-        );
-      } else {
-        this.chickens.push(
-          this.createChicken(IMG_SRCs.pollitoWALK[0], chicken_X)
-        );
-      }
-    });
   }
 
   /**
@@ -427,7 +407,7 @@ export class CanvasComponent implements OnInit {
       this.CanvasEndboss.getImgSrc(),
       this.CanvasEndboss.getLeftImgBorder(),
       this.CanvasEndboss.getUpperImgBorder(),
-      SCALING_FACTOR.endboss,
+      this.CanvasEndboss.getScale(),
       1
     );
 
@@ -477,13 +457,12 @@ export class CanvasComponent implements OnInit {
   }
 
   drawBottles() {
-    this.bottles.placedB.forEach((b) => {
-      let x = b.valueOf();
+    bottles.forEach((bottle) => {
       this.addBgObject(
-        IMG_SRCs.bottles[0],
-        x,
-        Y_COORDINATE_BASE_LEVEL + 312,
-        0.25,
+        bottle.getImgSrc(),
+        bottle.getLeftImgBorder(),
+        bottle.getUpperImgBorder(),
+        bottle.getScale(),
         1
       );
     });
@@ -493,7 +472,7 @@ export class CanvasComponent implements OnInit {
     coins.forEach((c) => {
       this.addBgObject(
         c.getImgSrc(),
-        c.getCurrentXPosition(0),
+        c.getLeftImgBorder(),
         c.getPosY(),
         c.getScale(),
         c.getOpacity()
@@ -511,21 +490,16 @@ export class CanvasComponent implements OnInit {
   }
 
   checkCollisionChicken() {
-    this.chickens.forEach((c) => {
-      let c_x = c.pos_x + this.bg_elements;
-      let src_path = this.ImageCacheService.getImgSrcPathByKey(
-        'gallinitaWalk',
-        0
-      );
-      let chickenImg = this.ImageCacheService.getImgFromCache(src_path);
+    chickens.forEach((c) => {
+      let chickenImgWidthAdjusted =
+        c.getImgWidth() - X_COLLISION_ADJUSTMENT.mainCharWithChicken;
       let timePassed =
         new Date().getTime() - this.CanvasMainCharacter.getLastHitHappened();
       let hasCollision = this.CollisionService.areObjectsInCollision(
-        c_x,
-        c.pos_y,
-        chickenImg.width * SCALING_FACTOR.chicken -
-          X_COLLISION_ADJUSTMENT.mainCharWithChicken,
-        chickenImg.height * SCALING_FACTOR.chicken,
+        c.getCurrentXPosition(this.bg_elements),
+        c.getUpperImgBorder(),
+        chickenImgWidthAdjusted,
+        c.getImgHeight(),
         this.CanvasMainCharacter.getLeftImgBorder(),
         this.CanvasMainCharacter.getUpperImgBorder(),
         this.CanvasMainCharacter.getImgWidth(),
@@ -544,16 +518,14 @@ export class CanvasComponent implements OnInit {
   }
 
   checkCollisionTabasco() {
-    for (let i = 0; i < this.bottles.placedB.length; i++) {
-      let b_x = this.bottles.placedB[i].valueOf() + this.bg_elements;
-      let src_path = this.ImageCacheService.getImgSrcPathByKey('bottles', 0);
-      let bottleImg = this.ImageCacheService.getImgFromCache(src_path);
+    for (let i = 0; i < bottles.length; i++) {
+      let bottle = bottles[i];
       if (
         this.CollisionService.areObjectsInCollision(
-          b_x,
-          250,
-          bottleImg.width - 0,
-          bottleImg.height,
+          bottle.getCurrentXPosition(this.bg_elements),
+          bottle.getUpperImgBorder(),
+          bottle.getImgWidth() - 0,
+          bottle.getImgHeight() - 0,
           this.CanvasMainCharacter.getLeftImgBorder(),
           this.CanvasMainCharacter.getUpperImgBorder(),
           this.CanvasMainCharacter.getImgWidth() -
@@ -562,6 +534,10 @@ export class CanvasComponent implements OnInit {
         )
       ) {
         this.CanvasMainCharacter.collBottle(i);
+        if (!AUDIO.OPEN_BOTTLE.ended) {
+          AUDIO.OPEN_BOTTLE.pause();
+          AUDIO.OPEN_BOTTLE.currentTime = 0;
+        }
         AUDIO.OPEN_BOTTLE.play();
       }
     }
@@ -661,6 +637,17 @@ export class CanvasComponent implements OnInit {
     }
   }
 
+  
+  calculateChickenPosition() {
+    setInterval(() => {
+      if (this.gameStarted) {
+        chickens.forEach(chicken => {
+          chicken.moveChicken();
+        });
+      }
+    }, 200);
+  }
+  
   drawBackgroundPicture() {
     for (let i = -3; i < 15; i += 3) {
       let canvas = this.myCanvas.nativeElement;
@@ -674,17 +661,6 @@ export class CanvasComponent implements OnInit {
         1
       );
     }
-  }
-
-  calculateChickenPosition() {
-    setInterval(() => {
-      if (this.gameStarted) {
-        for (let i = 0; i < this.chickens.length; i++) {
-          let chicken = this.chickens[i];
-          chicken.pos_x -= this.chickens[i].speed;
-        }
-      }
-    }, 200);
   }
 
   addBgObject(
@@ -762,32 +738,19 @@ export class CanvasComponent implements OnInit {
   }
 
   drawChicken() {
-    for (let i = 0; i < this.chickens.length; i++) {
+    chickens.forEach(chicken => {
       this.addBgObject(
-        this.chickens[i].img,
-        this.chickens[i].pos_x,
-        this.chickens[i].pos_y,
-        this.chickens[i].scale,
-        this.chickens[i].opactiy
+        chicken.getImgSrc(),
+        chicken.getLeftImgBorder(),
+        chicken.getUpperImgBorder(),
+        chicken.getScale(),
+        chicken.getOpacity()
       );
-    }
-  }
-
-  createChicken(src, pos_x) {
-    let c: Chicken = {
-      img: src,
-      pos_x: pos_x,
-      pos_y: 595,
-      scale: SCALING_FACTOR.chicken,
-      opactiy: 1,
-      speed: Math.random() * 15,
-    };
-    return c;
+    });
   }
 
   @HostListener('document:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
-    //AUDIO.BG_MUSIC.play();
     if (e.code === 'Enter') {
       this.gameStarted = true;
     }

@@ -27,7 +27,7 @@ export class Chicken {
       this.pollito = true;
     }
     this.posX = xCoordinate;
-    this.posY = yPositions.Chicken;
+    this.posY = yPositions.chicken;
     this.scale = SCALING_FACTOR.chicken;
     this.opacity = 1;
     this.speed = Math.random() * 15;

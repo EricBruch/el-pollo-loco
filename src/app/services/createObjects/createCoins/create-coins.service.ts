@@ -11,13 +11,6 @@ export class CreateCoinsService {
   constructor(private ImageCacheService: ImageCacheService) {}
 
   /**
-   * CreateCoinsServiceLog
-   */
-  public CreateCoinsServiceLog() {
-    console.log('CreateCoinsService  log');
-  }
-
-  /**
    * createCoins
    */
   public createCoins() {

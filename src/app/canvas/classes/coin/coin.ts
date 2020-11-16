@@ -15,10 +15,10 @@ export class Coin {
   private imgNr: number;
 
   constructor(
-    xCoordinate,
-    yCoordinate,
-    imgNr,
-    srcPath,
+    xCoordinate: number,
+    yCoordinate: number,
+    imgNr: number,
+    srcPath: string,
     private ImageCacheService: ImageCacheService
   ) {
     this.posX = xCoordinate;
@@ -33,8 +33,12 @@ export class Coin {
     return this.imgSrc;
   }
 
-  private setImgSrc(imgSrc: string): void {
+  public setImgSrc(imgSrc: string): void {
     this.imgSrc = imgSrc;
+  }
+
+  public getLeftImgBorder(): number {
+    return this.posX;
   }
 
   public getImgNr(): number {

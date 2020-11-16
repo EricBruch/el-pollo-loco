@@ -25,6 +25,7 @@ export class Endboss {
   private pos_y: number;
   private CanvasComponent: CanvasComponent;
   private img: HTMLImageElement;
+  private scale: number;
 
   constructor(canvas: CanvasComponent) {
     this.live = 100;
@@ -45,27 +46,36 @@ export class Endboss {
     this.CanvasComponent = canvas;
     this.img = new Image();
     this.img.src = this.imgSrc;
+    this.scale = SCALING_FACTOR.endboss;
+  }
+
+  public getScale(): number {
+    return this.scale;
+  }
+
+  public setScale(scale: number): void {
+    this.scale = scale;
   }
 
   /**
    * getCurrentXPosition
    */
   public getCurrentXPosition() {
-      return this.pos_x + this.CanvasComponent.bg_elements;
+    return this.pos_x + this.CanvasComponent.bg_elements;
   }
 
   /**
    * getImgWidth
    */
   public getImgWidth() {
-      return this.img.width * SCALING_FACTOR.endboss;
+    return this.img.width * SCALING_FACTOR.endboss;
   }
 
   /**
    * getImgHeight
    */
   public getImgHeight() {
-      return this.img.height * SCALING_FACTOR.endboss;
+    return this.img.height * SCALING_FACTOR.endboss;
   }
 
   /**

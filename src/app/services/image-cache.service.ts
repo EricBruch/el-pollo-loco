@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { IMG_SRCs } from '../canvas/constants';
-import { imgCache } from "../canvas/objects";
+import { imgCache } from '../canvas/objects';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +13,7 @@ export class ImageCacheService {
    * It checks the cache against the provided string for the img.
    * If an img can't be find a new one will be created from the source string.
    */
-  public getImgFromCache(src_path: string) {
+  public getImgFromCache(src_path: string): HTMLImageElement {
     let img = imgCache.find((c_img) => {
       c_img.src.endsWith(src_path);
     });
@@ -29,7 +29,7 @@ export class ImageCacheService {
    * It checks the Img cache against the provided source string.
    * If the img can't be find undefined will be returned
    */
-  public getImgIndexFromCache(src_path: string) {
+  public getImgIndexFromCache(src_path: string): number {
     return imgCache.findIndex((c_img) => {
       c_img.src.endsWith(src_path);
     });
@@ -40,9 +40,9 @@ export class ImageCacheService {
    * The functions searches for the key within Img sources and returns the source path for index.
    * If the key is not found a warning is logged.
    */
-  public getImgSrcPathByKey(key: string, i: number) {
+  public getImgSrcPathByKey(key: string, i: number): string {
     let result;
-    Object.keys(IMG_SRCs).forEach(element => {
+    Object.keys(IMG_SRCs).forEach((element) => {
       if (element === key) {
         result = true;
       }
@@ -52,7 +52,7 @@ export class ImageCacheService {
     //   element === key;
     // });
     // console.log(result);
-    
+
     if (result) {
       return IMG_SRCs[key][i];
     } else {

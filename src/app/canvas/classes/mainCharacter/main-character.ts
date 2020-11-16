@@ -13,9 +13,10 @@ import {
   LEFT_BORDER,
   AUDIO,
   SCALING_FACTOR,
-  CHARACTER_LIVES
+  CHARACTER_LIVES,
 } from './../../constants';
 import { ImageCacheService } from '../../../services/image-cache.service';
+import { coins } from '../../objects';
 
 export class MainCharacter {
   private x_coordinate: number;
@@ -95,14 +96,16 @@ export class MainCharacter {
    * getImgWidth
    */
   public getImgWidth() {
-    return this.img.width * SCALING_FACTOR.mainChar;
+    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
+    return img.width * SCALING_FACTOR.mainChar;
   }
 
   /**
    * getImgHeight
    */
   public getImgHeight() {
-    return this.img.height * SCALING_FACTOR.mainChar;
+    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
+    return img.height * SCALING_FACTOR.mainChar;
   }
 
   /**
@@ -110,7 +113,7 @@ export class MainCharacter {
    */
   public collectCoin(i: number) {
     this.collCoins++;
-    this.canvasComponent.coins.splice(i, 1);
+    coins.splice(i, 1);
   }
 
   /**
@@ -119,7 +122,6 @@ export class MainCharacter {
   public collBottle(i: number) {
     this.collBottles++;
     this.canvasComponent.bottles.placedB.splice(i, 1);
-
   }
   public setX_coordinate(x_coordinate: number): void {
     this.x_coordinate = x_coordinate;

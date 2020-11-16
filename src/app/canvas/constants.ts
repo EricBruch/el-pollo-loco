@@ -13,7 +13,7 @@ export const CHARACTER_LIVES = 50;
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
 
-export const BOSS_X_START = 5000;
+export const BOSS_X_START = 800;
 export const BOSS_Y_START = 225;
 
 export enum ENDBOSS_STATUS {
@@ -41,6 +41,8 @@ export enum SCALING_FACTOR {
   mainChar = 0.35,
   coin = 0.75,
   chicken = 0.3,
+  endboss = 0.4,
+  throwBottle = 0.25,
 }
 
 export enum X_COLLISION_ADJUSTMENT {
@@ -49,39 +51,43 @@ export enum X_COLLISION_ADJUSTMENT {
   mainCharWithChicken = 65,
 }
 
+export enum IMG_SRC_KEYS {
+  coins = 'coins',
+}
+
 export const CHICKEN_START_X_COORD = [
-  1000,
-  1400,
-  1800,
-  2500,
-  3000,
-  3300,
-  3800,
-  4200,
-  4500,
+  // 1000,
+  // 1400,
+  // 1800,
+  // 2500,
+  // 3000,
+  // 3300,
+  // 3800,
+  // 4200,
+  // 4500,
 ];
 export const COINS_START_X_COORD = [
-  800,
-  1200,
-  1800,
-  1900,
-  2000,
-  2100,
-  2500,
-  2600,
+  // 800,
+  // 1200,
+  // 1800,
+  // 1900,
+  // 2000,
+  // 2100,
+  // 2500,
+  // 2600,
 ];
 
 export const BOTTLE_START_X_COORD = [
-  500,
-  1000,
-  1100,
-  1200,
-  1700,
-  2000,
-  2500,
-  2800,
-  3000,
-  3300,
+  // 500,
+  // 1000,
+  // 1100,
+  // 1200,
+  // 1700,
+  // 2000,
+  // 2500,
+  // 2800,
+  // 3000,
+  // 3300,
 ];
 
 //############################# Audio Sounds ############################

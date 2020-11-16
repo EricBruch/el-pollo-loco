@@ -8,29 +8,26 @@ import {
 import {
   JUMP_TIME,
   GRAVITY,
-  BOSS_X_START,
-  BOSS_Y_START,
   Y_COORDINATE_BASE_LEVEL,
   CHICKEN_START_X_COORD,
   IMG_SRCs,
   AUDIO,
   imgCache,
-  COINS_START_X_COORD,
   BOTTLE_START_X_COORD,
-  ENDBOSS_STATUS,
   GAME_STATUS,
   loseImgs,
   BOTTLE_STATUS,
   SCALING_FACTOR,
   X_COLLISION_ADJUSTMENT,
 } from './constants';
-import { Coin } from './types/coin.type';
+import { coins } from './objects';
 import { Chicken } from './types/chicken.type';
-import { EndBoss } from './types/endboss.type';
 import { Bottles } from './types/bottles.type';
 import { MainCharacter as mainChar } from './classes/mainCharacter/main-character';
+import { Endboss } from './classes/endboss/endboss';
 import { ImageCacheService } from '../services/image-cache.service';
 import { CollisionService } from '../services/Collision/collision.service';
+import { LoadResourcesService } from '../services/loadResources/load-resources.service';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
@@ -38,6 +35,7 @@ import { CollisionService } from '../services/Collision/collision.service';
 })
 export class CanvasComponent implements OnInit {
   CanvasMainCharacter: mainChar;
+  CanvasEndboss: Endboss;
 
   gameStarted = false;
   gameFinished = false;
@@ -50,8 +48,6 @@ export class CanvasComponent implements OnInit {
   background_image = new Image();
 
   chickens = [];
-  coins = [];
-  coins_i = 1;
 
   bottles: Bottles = {
     placedB: BOTTLE_START_X_COORD,
@@ -59,24 +55,6 @@ export class CanvasComponent implements OnInit {
     throwB_Y: 0,
     throwB_Status: BOTTLE_STATUS.inactive,
     throwB_ImgNr: 0,
-  };
-
-  endboss: EndBoss = {
-    live: 100,
-    defeatedAt: 0,
-    lastHitTakenAt: 0,
-    lastWalkAnimationAt: 0,
-    lastHitAnimationAt: 0,
-    status: ENDBOSS_STATUS.walk,
-    deathImgNr: 0,
-    walkImgNr: 0,
-    hurtImgNr: 0,
-    alertImgNr: 0,
-    attackImgNr: 0,
-    moveLeft: true,
-    imgSrc: IMG_SRCs.giantGallinitaWalk[0],
-    pos_x: BOSS_X_START,
-    pos_y: BOSS_Y_START,
   };
   /*
   TODOs
@@ -87,6 +65,8 @@ export class CanvasComponent implements OnInit {
   *   + needs to hold y coordination
   * 
   * + dynamische Größe Canvas (Vollbildmodus)
+  * + Coins:
+  *   + make Coin Class to give bg_elements and make bg_elements adustment outside
 */
   @ViewChild('canvas')
   myCanvas: ElementRef<HTMLCanvasElement>;
@@ -94,9 +74,11 @@ export class CanvasComponent implements OnInit {
 
   constructor(
     private ImageCacheService: ImageCacheService,
-    private CollisionService: CollisionService
+    private CollisionService: CollisionService,
+    private loadResourcesService: LoadResourcesService
   ) {
     this.CanvasMainCharacter = new mainChar(this, ImageCacheService);
+    this.CanvasEndboss = new Endboss(this);
   }
 
   ngOnInit(): void {}
@@ -110,13 +92,14 @@ export class CanvasComponent implements OnInit {
     this.checkForAnimationCharacter();
     this.checkForLoseScreen();
     this.checkThrowingBorder();
+    this.checkForCoinAnimation();
     this.draw();
   }
 
   loadResources() {
     this.setupImgCache();
     this.loadAdditionalImgs();
-    this.createCoins();
+    this.loadResourcesService.loadResources();
     this.createChickens();
     this.initalizeSound();
   }
@@ -209,6 +192,10 @@ export class CanvasComponent implements OnInit {
         this.bottles.throwB_X >
           this.CanvasMainCharacter.getLeftImgBorder() - this.bg_elements + 800)
     ) {
+      if (!AUDIO.SMASH_BOTTLE.ended) {
+        AUDIO.SMASH_BOTTLE.pause();
+        AUDIO.SMASH_BOTTLE.currentTime = 0;
+      }
       AUDIO.SMASH_BOTTLE.play();
       this.bottles.throwB_Status = BOTTLE_STATUS.inactive;
       this.bottles.throwB_ImgNr = 0;
@@ -224,126 +211,16 @@ export class CanvasComponent implements OnInit {
 
   checkForAnimationEndboss() {
     setInterval(() => {
-      let st = this.getEndbossStatus();
-      switch (st) {
-        case ENDBOSS_STATUS.death:
-          this.adjustEndbossDeath();
-          break;
-
-        case ENDBOSS_STATUS.hit:
-          this.adjustEndbossHit();
-          break;
-
-        case ENDBOSS_STATUS.walk:
-          this.adjustEndbossWalking();
-          break;
-
-        case ENDBOSS_STATUS.alert:
-          this.adjustEndbossAlert();
-          break;
-
-        case ENDBOSS_STATUS.attack:
-          this.adjustEndbossAttack();
-          break;
-
-        default:
-          break;
-      }
+      this.CanvasEndboss.updateEndboss();
     }, 30);
   }
 
-  getEndbossStatus() {
-    if (this.endboss.defeatedAt) {
-      return ENDBOSS_STATUS.death;
-    }
-    if (this.endboss.status === ENDBOSS_STATUS.hit) {
-      return ENDBOSS_STATUS.hit;
-    } else if (this.endboss.live >= 70) {
-      return ENDBOSS_STATUS.walk;
-    } else if (this.endboss.live >= 40) {
-      return ENDBOSS_STATUS.alert;
-    } else {
-      return ENDBOSS_STATUS.attack;
-    }
-  }
-
-  adjustEndbossDeath() {
-    let timePassed = new Date().getTime() - this.endboss.defeatedAt;
-    if (timePassed > 80 && this.endboss.deathImgNr < 2) {
-      this.endboss.deathImgNr++;
-    }
-    this.endboss.imgSrc = IMG_SRCs.giantGallinitaDeath[this.endboss.deathImgNr];
-    this.endboss.pos_x += timePassed * 0.1;
-    this.endboss.pos_y -= timePassed * 0.1;
-  }
-
-  adjustEndbossWalking() {
-    this.adjustEndbossMovement(2);
-    let timePassed = new Date().getTime() - this.endboss.lastWalkAnimationAt;
-    if (timePassed > 80) {
-      this.endboss.imgSrc =
-        IMG_SRCs.giantGallinitaWalk[
-          this.endboss.walkImgNr++ % IMG_SRCs.giantGallinitaWalk.length
-        ];
-      this.endboss.lastWalkAnimationAt = new Date().getTime();
-    }
-  }
-
-  adjustEndbossHit() {
-    let timePassed = new Date().getTime() - this.endboss.lastHitTakenAt;
-    if (timePassed > 55) {
-      if (this.endboss.hurtImgNr < IMG_SRCs.giantGallinitaHurt.length) {
-        this.endboss.imgSrc =
-          IMG_SRCs.giantGallinitaHurt[this.endboss.hurtImgNr++];
-        this.endboss.lastHitTakenAt = new Date().getTime();
-      } else {
-        this.endboss.status = ENDBOSS_STATUS.adjust;
-        this.endboss.hurtImgNr = 0;
-      }
-    }
-  }
-
-  adjustEndbossAlert() {
-    this.adjustEndbossMovement(7);
-    let timePassed = new Date().getTime() - this.endboss.lastWalkAnimationAt;
-    if (timePassed > 80) {
-      this.endboss.imgSrc =
-        IMG_SRCs.giantGallinitaAlert[
-          this.endboss.alertImgNr++ % IMG_SRCs.giantGallinitaAlert.length
-        ];
-      this.endboss.lastWalkAnimationAt = new Date().getTime();
-    }
-  }
-
-  adjustEndbossAttack() {
-    this.adjustEndbossMovement(15);
-    let timePassed: number =
-      new Date().getTime() - this.endboss.lastWalkAnimationAt;
-    if (timePassed > 80) {
-      this.endboss.imgSrc =
-        IMG_SRCs.giantGallinitaAttack[
-          this.endboss.attackImgNr++ % IMG_SRCs.giantGallinitaAttack.length
-        ];
-      this.endboss.lastWalkAnimationAt = new Date().getTime();
-    }
-  }
-
-  adjustEndbossMovement(move_x: number) {
-    let x_left_border = BOSS_X_START - Math.round(Math.random() * 1000);
-    let x_right_border = BOSS_X_START + Math.round(Math.random() * 1000);
-    if (this.endboss.moveLeft) {
-      if (this.endboss.pos_x > x_left_border) {
-        this.endboss.pos_x -= move_x;
-      } else {
-        this.endboss.moveLeft = false;
-      }
-    } else {
-      if (this.endboss.pos_x < x_right_border) {
-        this.endboss.pos_x += move_x;
-      } else {
-        this.endboss.moveLeft = true;
-      }
-    }
+  checkForCoinAnimation() {
+    setInterval(() => {
+      coins.forEach((coin) => {
+        coin.adjustImgNr();
+      });
+    }, 100);
   }
 
   createChickens() {
@@ -359,24 +236,6 @@ export class CanvasComponent implements OnInit {
         );
       }
     });
-  }
-
-  createCoins() {
-    COINS_START_X_COORD.forEach((coin_x) => {
-      let rnd_y = Math.round(Math.random() * 250);
-      let c = this.createCoin(coin_x, rnd_y);
-      this.coins.push(c);
-    });
-  }
-
-  createCoin(x: number, y: number) {
-    let c: Coin = {
-      pos_x: x,
-      pos_y: Y_COORDINATE_BASE_LEVEL + y,
-      scale: SCALING_FACTOR.coin,
-      opacity: 1,
-    };
-    return c;
   }
 
   /**
@@ -543,7 +402,7 @@ export class CanvasComponent implements OnInit {
       IMG_SRCs.bottlesSpinning[n],
       this.bottles.throwB_X,
       this.bottles.throwB_Y,
-      0.25,
+      SCALING_FACTOR.throwBottle,
       1
     );
   }
@@ -554,7 +413,7 @@ export class CanvasComponent implements OnInit {
         IMG_SRCs.bottlesSplash[this.bottles.throwB_ImgNr++],
         this.bottles.throwB_X,
         this.bottles.throwB_Y,
-        0.25,
+        SCALING_FACTOR.throwBottle,
         1
       );
     } else {
@@ -567,27 +426,27 @@ export class CanvasComponent implements OnInit {
 
   drawEndBoss() {
     this.addBgObject(
-      this.endboss.imgSrc,
-      this.endboss.pos_x,
-      this.endboss.pos_y,
-      0.4,
+      this.CanvasEndboss.getImgSrc(),
+      this.CanvasEndboss.getLeftImgBorder(),
+      this.CanvasEndboss.getUpperImgBorder(),
+      SCALING_FACTOR.endboss,
       1
     );
 
-    if (!this.endboss.defeatedAt) {
+    if (!this.CanvasEndboss.getDefeatedAt()) {
       this.context.globalAlpha = 0.3;
       this.context.fillStyle = 'red';
       this.context.fillRect(
-        this.endboss.pos_x + this.bg_elements,
-        260,
-        2 * this.endboss.live,
+        this.CanvasEndboss.getCurrentXPosition(),
+        this.CanvasEndboss.getUpperImgBorder() + 35,
+        2 * this.CanvasEndboss.getLive(),
         15
       );
 
       this.context.fillStyle = 'black';
       this.context.fillRect(
-        this.endboss.pos_x - 5 + this.bg_elements,
-        255,
+        this.CanvasEndboss.getCurrentXPosition() - 5,
+        this.CanvasEndboss.getUpperImgBorder() + 30,
         210,
         25
       );
@@ -633,10 +492,14 @@ export class CanvasComponent implements OnInit {
   }
 
   drawCoins() {
-    this.coins.forEach((c) => {
-      let i = this.coins_i === 1 ? 0 : 1;
-      let src = IMG_SRCs.coins[i];
-      this.addBgObject(src, c.pos_x, c.pos_y, c.scale, c.opacity);
+    coins.forEach((c) => {
+      this.addBgObject(
+        c.getImgSrc(),
+        c.getCurrentXPosition(0),
+        c.getPosY(),
+        c.getScale(),
+        c.getOpacity()
+      );
     });
   }
 
@@ -712,28 +575,22 @@ export class CanvasComponent implements OnInit {
   }
 
   checkCollisionCoins() {
-    for (let i = 0; i < this.coins.length; i++) {
-      const coin = this.coins[i];
-      let c_x = coin.pos_x + this.bg_elements;
-      let src_path = this.ImageCacheService.getImgSrcPathByKey('coins', 0);
-      let imgCoin = this.ImageCacheService.getImgFromCache(src_path);
-      let coinImgWidth = imgCoin.width * SCALING_FACTOR.coin - 0;
-      let coinImgHeight = imgCoin.height * SCALING_FACTOR.coin - 0;
+    for (let i = 0; i < coins.length; i++) {
+      const coin = coins[i];
       let mainCharImgWidth =
         this.CanvasMainCharacter.getImgWidth() -
         X_COLLISION_ADJUSTMENT.mainCharWithCoin;
-      if (
-        this.CollisionService.areObjectsInCollision(
-          c_x,
-          coin.pos_y,
-          coinImgWidth,
-          coinImgHeight,
-          this.CanvasMainCharacter.getLeftImgBorder(),
-          this.CanvasMainCharacter.getUpperImgBorder(),
-          mainCharImgWidth,
-          this.CanvasMainCharacter.getImgHeight() - 0
-        )
-      ) {
+      let isHit = this.CollisionService.areObjectsInCollision(
+        coin.getCurrentXPosition(this.bg_elements),
+        coin.getPosY(),
+        coin.getImgWidth() - 0,
+        coin.getImgHeight() - 0,
+        this.CanvasMainCharacter.getLeftImgBorder(),
+        this.CanvasMainCharacter.getUpperImgBorder(),
+        mainCharImgWidth,
+        this.CanvasMainCharacter.getImgHeight() - 0
+      );
+      if (isHit) {
         this.CanvasMainCharacter.collectCoin(i);
         AUDIO.COLL_COIN.play();
       }
@@ -749,21 +606,35 @@ export class CanvasComponent implements OnInit {
   }
 
   checkEndbossHit() {
-    let timePassed = new Date().getTime() - this.endboss.lastHitTakenAt;
-    if (
-      this.bottles.throwB_X > this.endboss.pos_x + this.bg_elements - 100 &&
-      this.bottles.throwB_X < this.endboss.pos_x + this.bg_elements + 100 &&
-      timePassed > 1000
-    ) {
-      if (this.endboss.live > 0) {
+    let timePassed =
+      new Date().getTime() - this.CanvasEndboss.getLastHitTakenAt();
+    let src_path = this.ImageCacheService.getImgSrcPathByKey(
+      'bottlesSpinning',
+      0
+    );
+    let bottleImg = this.ImageCacheService.getImgFromCache(src_path);
+    let isHit = this.CollisionService.areObjectsInCollision(
+      this.bottles.throwB_X,
+      this.bottles.throwB_Y,
+      bottleImg.width * SCALING_FACTOR.throwBottle,
+      bottleImg.height * SCALING_FACTOR.throwBottle,
+      this.CanvasEndboss.getCurrentXPosition(),
+      this.CanvasEndboss.getUpperImgBorder(),
+      this.CanvasEndboss.getImgWidth(),
+      this.CanvasEndboss.getImgHeight()
+    );
+    if (timePassed > 1000 && isHit) {
+      if (this.CanvasEndboss.getLive() > 0) {
+        if (!AUDIO.SMASH_BOTTLE.ended) {
+          AUDIO.SMASH_BOTTLE.pause();
+          AUDIO.SMASH_BOTTLE.currentTime = 0;
+        }
         AUDIO.SMASH_BOTTLE.play();
         this.bottles.throwB_Status = BOTTLE_STATUS.splash;
         this.bottles.throwB_ImgNr = 0;
-        this.endboss.live -= 10;
-        this.endboss.lastHitTakenAt = new Date().getTime();
-        this.endboss.status = ENDBOSS_STATUS.hit;
-      } else if (this.endboss.defeatedAt == 0) {
-        this.endboss.defeatedAt = new Date().getTime();
+        this.CanvasEndboss.hitEndboss();
+      } else if (this.CanvasEndboss.getDefeatedAt() == 0) {
+        this.CanvasEndboss.setDefeatedAt(new Date().getTime());
         this.finishLevel();
       }
     }
@@ -772,13 +643,17 @@ export class CanvasComponent implements OnInit {
   checkEndbossTouchesCharacter() {
     let timePassed =
       new Date().getTime() - this.CanvasMainCharacter.getLastHitHappened();
-    if (
-      this.CanvasMainCharacter.getLeftImgBorder() >
-        this.endboss.pos_x + this.bg_elements - 100 &&
-      this.CanvasMainCharacter.getLeftImgBorder() <
-        this.endboss.pos_x + this.bg_elements + 100 &&
-      timePassed > 1000
-    ) {
+    let isHit = this.CollisionService.areObjectsInCollision(
+      this.CanvasEndboss.getCurrentXPosition(),
+      this.CanvasEndboss.getUpperImgBorder(),
+      this.CanvasEndboss.getImgWidth(),
+      this.CanvasEndboss.getImgHeight(),
+      this.CanvasMainCharacter.getLeftImgBorder(),
+      this.CanvasMainCharacter.getUpperImgBorder(),
+      this.CanvasMainCharacter.getImgWidth(),
+      this.CanvasMainCharacter.getImgHeight()
+    );
+    if (isHit && timePassed > 1000) {
       if (this.CanvasMainCharacter.getLives() > 1) {
         this.CanvasMainCharacter.performCharHit();
       } else {

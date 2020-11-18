@@ -4,6 +4,7 @@ export const JUMP_SPEED = 10;
 export const JUMP_ANIMATION_SWITCH = JUMP_TIME / 8; // 37,5 // in ms
 export const WALK_SPEED = 7;
 export const IDLE_ANIMATION_SWITCH = 3000; // in ms
+export const IDLE_ANIMATION_START = 5000; // in ms
 export const WALK_ANIMATION_SWITCH = 50; // in ms
 export const GRAVITY = 9.81;
 export const LEFT_BORDER = 100;
@@ -65,7 +66,7 @@ export enum IMG_SRC_KEYS {
 }
 
 export const CHICKEN_START_X_COORD = [
-  // 1000,
+  1000,
   // 1400,
   // 1800,
   // 2500,

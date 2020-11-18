@@ -135,7 +135,7 @@ export class CanvasComponent implements OnInit {
 
   checkForIdle() {
     setInterval(() => {
-      this.CanvasMainCharacter.updateCharacterIdle();
+      this.CanvasMainCharacter.checkCharacterIdle();
     }, 30);
   }
 
@@ -234,9 +234,8 @@ export class CanvasComponent implements OnInit {
     }
   }
 
-  updateCharacter() {
+  drawCharacter() {
     let img = this.CanvasMainCharacter.getMainCharImg();
-
     let xAdjustment = 0;
     let imgWidthAdjustment = 1;
     if (this.CanvasMainCharacter.isIsRunningLeft()) {
@@ -250,8 +249,8 @@ export class CanvasComponent implements OnInit {
         img,
         this.CanvasMainCharacter.getLeftImgBorder() - xAdjustment,
         this.CanvasMainCharacter.getUpperImgBorder(),
-        img.width * SCALING_FACTOR.mainChar * imgWidthAdjustment,
-        img.height * SCALING_FACTOR.mainChar
+        this.CanvasMainCharacter.getImgWidth() * imgWidthAdjustment,
+        this.CanvasMainCharacter.getImgHeight()
       );
     }
     if (this.CanvasMainCharacter.isIsRunningLeft()) {
@@ -266,7 +265,7 @@ export class CanvasComponent implements OnInit {
 
   drawPlayScreens() {
     this.drawBackgroundPicture();
-    this.updateCharacter();
+    this.drawCharacter();
     this.drawChicken();
     this.drawBottles();
     this.drawCoins();

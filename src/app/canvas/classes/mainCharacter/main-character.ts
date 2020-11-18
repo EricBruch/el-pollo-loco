@@ -13,6 +13,7 @@ import {
   AUDIO,
   SCALING_FACTOR,
   CHARACTER_LIVES,
+  IDLE_ANIMATION_START,
 } from './../../constants';
 import { ImageCacheService } from '../../../services/image-cache.service';
 import { coins, imgCache } from '../../objects';
@@ -33,6 +34,7 @@ export class MainCharacter {
   private lastJumpStarted: number;
   private lastJumpAnimationStarted: number;
   private lastIdleStarted: number;
+  private lastIdleAnimationStarted: number;
   private lastWalkStarted: number;
   private lastHitHappened: number;
   private lastHitAnimation: number;
@@ -51,8 +53,8 @@ export class MainCharacter {
     this.lives = CHARACTER_LIVES;
     this.xPos = X_COORDINATE_BASE_LEVEL;
     this.yPos = Y_COORDINATE_BASE_LEVEL;
-    this.isIdle = true;
-    this.isLongIdle = true;
+    this.isIdle = false;
+    this.isLongIdle = false;
     this.isJumping = false;
     this.isFalling = false;
     this.isRunningRight = false;
@@ -61,6 +63,7 @@ export class MainCharacter {
     this.lastJumpStarted = 0;
     this.lastJumpAnimationStarted = 0;
     this.lastIdleStarted = 0;
+    this.lastIdleAnimationStarted = 0;
     this.lastWalkStarted = 0;
     this.lastHitHappened = 0;
     this.lastHitAnimation = 0;
@@ -271,6 +274,14 @@ export class MainCharacter {
     this.deadImg = deadImg;
   }
 
+  public getLastIdleAnimationStarted(): number {
+    return this.lastIdleAnimationStarted;
+  }
+
+  public setLastIdleAnimationStarted(lastIdleAnimationStarted: number): void {
+    this.lastIdleAnimationStarted = lastIdleAnimationStarted;
+  }
+
   public isRunning(): boolean {
     return this.isRunningLeft == true || this.isRunningRight == true;
   }
@@ -304,22 +315,32 @@ export class MainCharacter {
     return this.img;
   }
 
-  public updateCharacterIdle(): void {
-    if (this.isIdle && !this.isHit && !this.canvasComponent.charLostAt) {
-      this.updateIdleState();
+  public checkCharacterIdle(): void {
+    if (
+      this.isHit ||
+      this.canvasComponent.charLostAt ||
+      this.isRunning() ||
+      this.isInJumpProcess()
+    ) {
+      return;
     }
-    if (this.isLongIdle && !this.isHit && !this.canvasComponent.charLostAt) {
+    let diff = new Date().getTime() - this.lastIdleStarted;
+    if (diff > IDLE_ANIMATION_START) {
+      if (!this.isLongIdle) {
+        this.isIdle = true;
+        this.updateIdleState();
+        return;
+      }
       this.updateLongIdleState();
     }
   }
 
   private updateIdleState(): void {
-    let diff = new Date().getTime() - this.lastIdleStarted;
+    let diff = new Date().getTime() - this.lastIdleAnimationStarted;
     if (diff > IDLE_ANIMATION_SWITCH) {
-      let n = IMG_SRCs.charIdle.length;
-      if (this.idleImg < n) {
-        let src = IMG_SRCs.charIdle[this.idleImg++ % IMG_SRCs.charIdle.length];
-        this.imgSrc = src;
+      let length = IMG_SRCs.charIdle.length;
+      if (this.idleImg < length) {
+        this.imgSrc = IMG_SRCs.charIdle[this.idleImg++ % length];
         this.lastIdleStarted = new Date().getTime();
       } else {
         this.isIdle = false;
@@ -330,7 +351,7 @@ export class MainCharacter {
   }
 
   private updateLongIdleState(): void {
-    let diff = new Date().getTime() - this.lastIdleStarted;
+    let diff = new Date().getTime() - this.lastIdleAnimationStarted;
     if (diff > IDLE_ANIMATION_SWITCH) {
       let src =
         IMG_SRCs.charLongIdle[this.idleImg++ % IMG_SRCs.charLongIdle.length];
@@ -355,8 +376,7 @@ export class MainCharacter {
     this.checkForJumpingPeak(diffJump);
   }
 
-  privat;
-  adjustJumpAnimation(diffJumpAnim: number) {
+  private adjustJumpAnimation(diffJumpAnim: number) {
     if (
       diffJumpAnim > JUMP_ANIMATION_SWITCH &&
       this.jumpImg < 7 &&
@@ -402,9 +422,6 @@ export class MainCharacter {
       this.isFalling = false;
       this.jumpImg = 0;
       this.resetIdle();
-      if (!this.isRunning()) {
-        this.isIdle = true;
-      }
     }
   }
 
@@ -428,7 +445,7 @@ export class MainCharacter {
     ) {
       this.adjustAudioForJump();
       this.canvasComponent.bg_elements -= WALK_SPEED;
-      this.adjustWalkAnimation();
+      this.checkWalkAnimationChange();
     }
   }
 
@@ -436,7 +453,7 @@ export class MainCharacter {
     if (this.isRunningLeft && this.canvasComponent.bg_elements < LEFT_BORDER) {
       this.adjustAudioForJump();
       this.canvasComponent.bg_elements += WALK_SPEED;
-      this.adjustWalkAnimation();
+      this.checkWalkAnimationChange();
     }
   }
 
@@ -449,16 +466,17 @@ export class MainCharacter {
     }
   }
 
-  private adjustWalkAnimation(): void {
-    if (!this.isJumping && !this.isHit) {
-      let diff = new Date().getTime() - this.lastWalkStarted;
-      if (diff > WALK_ANIMATION_SWITCH) {
-        this.changeWalkAnimation();
-      }
+  private checkWalkAnimationChange(): void {
+    if (this.isInJumpProcess() || this.isHit) {
+      return;
+    }
+    let diff = new Date().getTime() - this.lastWalkStarted;
+    if (diff > WALK_ANIMATION_SWITCH) {
+      this.updateWalkImgSrc();
     }
   }
 
-  private changeWalkAnimation(): void {
+  private updateWalkImgSrc(): void {
     let src = IMG_SRCs.charWalk[this.walkImg++ % IMG_SRCs.charWalk.length];
     this.imgSrc = src;
     this.lastWalkStarted = new Date().getTime();
@@ -466,7 +484,7 @@ export class MainCharacter {
 
   public updateCharacterHit(): void {
     let timePassed = new Date().getTime() - this.lastHitAnimation;
-    if (this.isHit && timePassed > 150) {
+    if (this.isHit && timePassed > 120) {
       this.resetIdle();
       this.imgSrc = IMG_SRCs.charHit[this.hitImg];
       this.hitImg++;
@@ -474,6 +492,7 @@ export class MainCharacter {
       if (this.hitImg === IMG_SRCs.charHit.length) {
         this.hitImg = 0;
         this.isHit = false;
+        this.setToIdle();
       }
     }
   }
@@ -500,7 +519,6 @@ export class MainCharacter {
    */
   public endRunningStateLeft(): void {
     this.resetIdle();
-    this.isIdle = true;
     this.imgSrc = IMG_SRCs.charIdle[0];
     this.isRunningLeft = false;
   }
@@ -510,7 +528,6 @@ export class MainCharacter {
    */
   public endRunningStateRight(): void {
     this.resetIdle();
-    this.isIdle = true;
     this.imgSrc = IMG_SRCs.charIdle[0];
     this.isRunningRight = false;
   }
@@ -521,19 +538,24 @@ export class MainCharacter {
   public startBottleThrow(dateTime: number): void {
     this.collBottles--;
     this.lastBottleThrowTime = dateTime;
+    this.resetIdle();
   }
 
   /**
    * startRunning
    */
   public startRunningLeft(): void {
-    this.isRunningLeft = true;
-    this.isIdle = false;
+    if (!this.isRunningRight) {
+      this.isRunningLeft = true;
+      this.resetIdle();
+    }
   }
 
   public startRunningRight(): void {
-    this.isRunningRight = true;
-    this.isIdle = false;
+    if (!this.isRunningLeft) {
+      this.isRunningRight = true;
+      this.resetIdle();
+    }
   }
 
   /**
@@ -542,6 +564,11 @@ export class MainCharacter {
   public startJump(): void {
     this.lastJumpStarted = new Date().getTime();
     this.isJumping = true;
-    this.isIdle = false;
+    this.resetIdle();
+  }
+
+  private setToIdle() {
+    this.isIdle = true;
+    this.imgSrc = IMG_SRCs['charIdle'][0];
   }
 }

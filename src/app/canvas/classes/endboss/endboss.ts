@@ -82,9 +82,9 @@ export class Endboss {
    * hitEndboss
    */
   public hitEndboss() {
-    this.live -= 10;
-    this.lastHitTakenAt = new Date().getTime();
-    this.status = ENDBOSS_STATUS.hit;
+      this.live -= 10;
+      this.lastHitTakenAt = new Date().getTime();
+      this.status = ENDBOSS_STATUS.hit;
   }
 
   public getLive(): number {

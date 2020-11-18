@@ -7,8 +7,6 @@ import {
 } from '@angular/core';
 import {
   JUMP_TIME,
-  GRAVITY,
-  Y_COORDINATE_BASE_LEVEL,
   IMG_SRCs,
   AUDIO,
   GAME_STATUS,
@@ -17,19 +15,18 @@ import {
   X_COLLISION_ADJUSTMENT,
 } from './constants';
 import { coins, imgCache, loseImgs, chickens, bottles } from './objects';
-import { Bottles } from './types/bottles.type';
 import { MainCharacter as mainChar } from './classes/mainCharacter/main-character';
 import { Endboss } from './classes/endboss/endboss';
 import { ImageCacheService } from '../services/image-cache.service';
 import { CollisionService } from '../services/Collision/collision.service';
 import { LoadResourcesService } from '../services/loadResources/load-resources.service';
+import { ThrowBottle } from './classes/throwBottle/throw-bottle';
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
   styleUrls: ['./canvas.component.scss'],
 })
 export class CanvasComponent implements OnInit {
-
   constructor(
     private ImageCacheService: ImageCacheService,
     private CollisionService: CollisionService,
@@ -41,6 +38,7 @@ export class CanvasComponent implements OnInit {
 
   CanvasMainCharacter: mainChar;
   CanvasEndboss: Endboss;
+  CanvasThrowBottle: ThrowBottle;
 
   gameStarted = false;
   gameFinished = false;
@@ -51,14 +49,6 @@ export class CanvasComponent implements OnInit {
 
   bg_elements: number = 0;
   background_image = new Image();
-
-  bottles: Bottles = {
-    //placedB: BOTTLE_START_X_COORD,
-    throwB_X: 0,
-    throwB_Y: 0,
-    throwB_Status: BOTTLE_STATUS.inactive,
-    throwB_ImgNr: 0,
-  };
   /*
   TODOs
   * + Sound für aufeinanderfolgenden Flaschenwurf abspielen
@@ -82,10 +72,10 @@ export class CanvasComponent implements OnInit {
     this.loadResources();
     this.checkCollisionDetection();
     this.calculateChickenPosition();
-    this.checkForAnimationEndboss();
-    this.checkForAnimationCharacter();
+    this.checkAnimationEndboss();
+    this.checkAnimationCharacter();
+    this.checkUpdateThrowingBottle();
     this.checkForLoseScreen();
-    this.checkThrowingBorder();
     this.checkForCoinAnimation();
     this.draw();
   }
@@ -149,7 +139,7 @@ export class CanvasComponent implements OnInit {
     }, 30);
   }
 
-  checkForAnimationCharacter() {
+  checkAnimationCharacter() {
     this.checkForRunning();
     this.checkForJump();
     this.checkForIdle();
@@ -160,9 +150,6 @@ export class CanvasComponent implements OnInit {
   checkCharacterHit() {
     setInterval(() => {
       this.CanvasMainCharacter.updateCharacterHit();
-      let x = this.ImageCacheService.getImgFromCache(
-        'assets/img/character/walk/W-0.png'
-      );
     }, 30);
   }
 
@@ -172,37 +159,25 @@ export class CanvasComponent implements OnInit {
     }, 30);
   }
 
-  checkThrowingBorder() {
-    setInterval(() => {
-      this.updateCheckThrowingBottle();
-    }, 80);
-  }
-
-  updateCheckThrowingBottle() {
+  checkThrowBottTouchGround() {
     if (
-      this.isThrowBottleActive() &&
-      (this.bottles.throwB_Y > Y_COORDINATE_BASE_LEVEL + 350 ||
-        this.bottles.throwB_X >
-          this.CanvasMainCharacter.getLeftImgBorder() - this.bg_elements + 800)
+      this.CanvasThrowBottle.isOnGroundLevel() &&
+      this.CanvasThrowBottle.isThrowing()
     ) {
-      if (!AUDIO.SMASH_BOTTLE.ended) {
-        AUDIO.SMASH_BOTTLE.pause();
-        AUDIO.SMASH_BOTTLE.currentTime = 0;
-      }
-      AUDIO.SMASH_BOTTLE.play();
-      this.bottles.throwB_Status = BOTTLE_STATUS.inactive;
-      this.bottles.throwB_ImgNr = 0;
+      this.playAudio(AUDIO.SMASH_BOTTLE);
+      this.CanvasThrowBottle.setStatus(BOTTLE_STATUS.splash);
     }
   }
 
-  isThrowBottleActive() {
-    return (
-      this.bottles.throwB_Status === BOTTLE_STATUS.splash ||
-      this.bottles.throwB_Status === BOTTLE_STATUS.throw
-    );
+  playAudio(audio: HTMLAudioElement) {
+    if (audio.ended) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    audio.play();
   }
 
-  checkForAnimationEndboss() {
+  checkAnimationEndboss() {
     setInterval(() => {
       this.CanvasEndboss.updateEndboss();
     }, 30);
@@ -351,54 +326,43 @@ export class CanvasComponent implements OnInit {
     );
   }
 
-  drawThrowBottle() {
-    switch (this.bottles.throwB_Status) {
+  checkUpdateThrowingBottle() {
+    setInterval(() => {
+      if (this.CanvasThrowBottle) {
+        this.updateThrowBottle();
+      }
+    }, 10);
+  }
+
+  updateThrowBottle() {
+    switch (this.CanvasThrowBottle.getStatus()) {
       case BOTTLE_STATUS.throw:
-        this.moveThrowBottle();
+        this.CanvasThrowBottle.moveBottle();
+        this.CanvasThrowBottle.adjustAnimation();
+        this.checkThrowBottTouchGround();
+        this.checkEndbossHit();
         break;
 
       case BOTTLE_STATUS.splash:
-        this.splashAnimationBottle();
-        break;
-
-      case BOTTLE_STATUS.inactive:
-        break;
-
-      default:
+        this.CanvasThrowBottle.adjustAnimation();
+        if (this.CanvasThrowBottle.isSplashFinished()) {
+          this.CanvasThrowBottle = undefined;
+        }
         break;
     }
   }
 
-  moveThrowBottle() {
-    let timePassed =
-      new Date().getTime() - this.CanvasMainCharacter.getLastBottleThrowTime();
-    let g = Math.pow(GRAVITY, timePassed / 300);
-    this.bottles.throwB_X = 225 + timePassed * 0.9;
-    this.bottles.throwB_Y = 470 - (timePassed * 0.4 - g);
-    let n = this.bottles.throwB_ImgNr++ % IMG_SRCs.bottlesSpinning.length;
-    this.addNonMoveableObject(
-      IMG_SRCs.bottlesSpinning[n],
-      this.bottles.throwB_X,
-      this.bottles.throwB_Y,
-      SCALING_FACTOR.throwBottle,
-      1
-    );
-  }
-
-  splashAnimationBottle() {
-    if (this.bottles.throwB_ImgNr < IMG_SRCs.bottlesSplash.length) {
-      this.addNonMoveableObject(
-        IMG_SRCs.bottlesSplash[this.bottles.throwB_ImgNr++],
-        this.bottles.throwB_X,
-        this.bottles.throwB_Y,
-        SCALING_FACTOR.throwBottle,
-        1
+  drawThrowBottle() {
+    if (this.CanvasThrowBottle) {
+      this.addBGPicture(
+        this.CanvasThrowBottle.getImg(),
+        this.CanvasThrowBottle.getCurrentXPosition(0),
+        this.CanvasThrowBottle.getUpperImgBorder(),
+        this.CanvasThrowBottle.getImgWidth(),
+        this.CanvasThrowBottle.getImgHeight(),
+        this.CanvasThrowBottle.getScale(),
+        this.CanvasThrowBottle.getOpacity()
       );
-    } else {
-      this.bottles.throwB_Status = BOTTLE_STATUS.inactive;
-      this.bottles.throwB_ImgNr = 0;
-      this.bottles.throwB_X = -2000;
-      this.bottles.throwB_Y = 2000;
     }
   }
 
@@ -469,13 +433,13 @@ export class CanvasComponent implements OnInit {
   }
 
   drawCoins() {
-    coins.forEach((c) => {
+    coins.forEach((coin) => {
       this.addBgObject(
-        c.getImgSrc(),
-        c.getLeftImgBorder(),
-        c.getPosY(),
-        c.getScale(),
-        c.getOpacity()
+        coin.getImgSrc(),
+        coin.getLeftImgBorder(),
+        coin.getPosY(),
+        coin.getScale(),
+        coin.getOpacity()
       );
     });
   }
@@ -490,16 +454,16 @@ export class CanvasComponent implements OnInit {
   }
 
   checkCollisionChicken() {
-    chickens.forEach((c) => {
+    chickens.forEach((chicken) => {
       let chickenImgWidthAdjusted =
-        c.getImgWidth() - X_COLLISION_ADJUSTMENT.mainCharWithChicken;
+        chicken.getImgWidth() - X_COLLISION_ADJUSTMENT.mainCharWithChicken;
       let timePassed =
         new Date().getTime() - this.CanvasMainCharacter.getLastHitHappened();
       let hasCollision = this.CollisionService.areObjectsInCollision(
-        c.getCurrentXPosition(this.bg_elements),
-        c.getUpperImgBorder(),
+        chicken.getCurrentXPosition(this.bg_elements),
+        chicken.getUpperImgBorder(),
         chickenImgWidthAdjusted,
-        c.getImgHeight(),
+        chicken.getImgHeight(),
         this.CanvasMainCharacter.getLeftImgBorder(),
         this.CanvasMainCharacter.getUpperImgBorder(),
         this.CanvasMainCharacter.getImgWidth(),
@@ -544,7 +508,6 @@ export class CanvasComponent implements OnInit {
   }
 
   checkCollisionEndboss() {
-    this.checkEndbossHit();
     this.checkEndbossTouchesCharacter();
   }
 
@@ -580,36 +543,26 @@ export class CanvasComponent implements OnInit {
   }
 
   checkEndbossHit() {
-    let timePassed =
-      new Date().getTime() - this.CanvasEndboss.getLastHitTakenAt();
-    let src_path = this.ImageCacheService.getImgSrcPathByKey(
-      'bottlesSpinning',
-      0
-    );
-    let bottleImg = this.ImageCacheService.getImgFromCache(src_path);
-    let isHit = this.CollisionService.areObjectsInCollision(
-      this.bottles.throwB_X,
-      this.bottles.throwB_Y,
-      bottleImg.width * SCALING_FACTOR.throwBottle,
-      bottleImg.height * SCALING_FACTOR.throwBottle,
-      this.CanvasEndboss.getCurrentXPosition(),
-      this.CanvasEndboss.getUpperImgBorder(),
-      this.CanvasEndboss.getImgWidth(),
-      this.CanvasEndboss.getImgHeight()
-    );
-    if (timePassed > 1000 && isHit) {
-      if (this.CanvasEndboss.getLive() > 0) {
-        if (!AUDIO.SMASH_BOTTLE.ended) {
-          AUDIO.SMASH_BOTTLE.pause();
-          AUDIO.SMASH_BOTTLE.currentTime = 0;
+    if (this.CanvasThrowBottle && this.CanvasThrowBottle.isThrowing) {
+      let hasCollision = this.CollisionService.areObjectsInCollision(
+        this.CanvasThrowBottle.getCurrentXPosition(this.bg_elements),
+        this.CanvasThrowBottle.getUpperImgBorder(),
+        this.CanvasThrowBottle.getImgWidth() - 50, //- 300
+        this.CanvasThrowBottle.getImgHeight() - 50,
+        this.CanvasEndboss.getCurrentXPosition() + 75, //+ 140
+        this.CanvasEndboss.getUpperImgBorder() + 130, //+ 180
+        this.CanvasEndboss.getImgWidth() - 0,
+        this.CanvasEndboss.getImgHeight() - 0
+      );
+      if (hasCollision) {
+        if (this.CanvasEndboss.getLive() > 0) {
+          this.playAudio(AUDIO.SMASH_BOTTLE);
+          this.CanvasThrowBottle.setStatus(BOTTLE_STATUS.splash);
+          this.CanvasEndboss.hitEndboss();
+        } else if (this.CanvasEndboss.getDefeatedAt() == 0) {
+          this.CanvasEndboss.setDefeatedAt(new Date().getTime());
+          this.finishLevel();
         }
-        AUDIO.SMASH_BOTTLE.play();
-        this.bottles.throwB_Status = BOTTLE_STATUS.splash;
-        this.bottles.throwB_ImgNr = 0;
-        this.CanvasEndboss.hitEndboss();
-      } else if (this.CanvasEndboss.getDefeatedAt() == 0) {
-        this.CanvasEndboss.setDefeatedAt(new Date().getTime());
-        this.finishLevel();
       }
     }
   }
@@ -637,17 +590,16 @@ export class CanvasComponent implements OnInit {
     }
   }
 
-  
   calculateChickenPosition() {
     setInterval(() => {
       if (this.gameStarted) {
-        chickens.forEach(chicken => {
+        chickens.forEach((chicken) => {
           chicken.moveChicken();
         });
       }
     }, 200);
   }
-  
+
   drawBackgroundPicture() {
     for (let i = -3; i < 15; i += 3) {
       let canvas = this.myCanvas.nativeElement;
@@ -738,7 +690,7 @@ export class CanvasComponent implements OnInit {
   }
 
   drawChicken() {
-    chickens.forEach(chicken => {
+    chickens.forEach((chicken) => {
       this.addBgObject(
         chicken.getImgSrc(),
         chicken.getLeftImgBorder(),
@@ -760,8 +712,15 @@ export class CanvasComponent implements OnInit {
       new Date().getTime() - this.CanvasMainCharacter.getLastBottleThrowTime() >
         1000
     ) {
-      this.CanvasMainCharacter.startBottleThrow();
-      this.bottles.throwB_Status = BOTTLE_STATUS.throw;
+      let dateTime = new Date().getTime();
+      this.CanvasThrowBottle = new ThrowBottle(
+        this.CanvasMainCharacter.getXThrowPosition(),
+        this.CanvasMainCharacter.getYThrowPosition(),
+        dateTime,
+        this.ImageCacheService
+      );
+      this.CanvasMainCharacter.startBottleThrow(dateTime);
+      this.playAudio(AUDIO.THROW_BOTTLE);
     }
 
     if (e.code === 'ArrowLeft') {

@@ -18,8 +18,8 @@ import { ImageCacheService } from '../../../services/image-cache.service';
 import { coins, imgCache } from '../../objects';
 
 export class MainCharacter {
-  private x_coordinate: number;
-  private y_coordinate: number;
+  private xPos: number;
+  private yPos: number;
   public collBottles: number;
   private collCoins: number;
   private lives: number;
@@ -49,8 +49,8 @@ export class MainCharacter {
   constructor(component, private ImageCacheService: ImageCacheService) {
     this.canvasComponent = component;
     this.lives = CHARACTER_LIVES;
-    this.x_coordinate = X_COORDINATE_BASE_LEVEL;
-    this.y_coordinate = Y_COORDINATE_BASE_LEVEL;
+    this.xPos = X_COORDINATE_BASE_LEVEL;
+    this.yPos = Y_COORDINATE_BASE_LEVEL;
     this.isIdle = true;
     this.isLongIdle = true;
     this.isJumping = false;
@@ -78,23 +78,36 @@ export class MainCharacter {
   }
 
   /**
+   * getXThrowPosition
+   */
+  public getXThrowPosition(): number {
+    return this.xPos - this.canvasComponent.bg_elements + 120;
+  }
+
+  /**
+   * getYThrowPosition
+   */
+  public getYThrowPosition(): number {
+    return this.yPos + 250;
+  }
+  /**
    * getLeftImgBorder
    */
-  public getLeftImgBorder() {
-    return this.x_coordinate;
+  public getLeftImgBorder(): number {
+    return this.xPos;
   }
 
   /**
    * getUpperImgBorder
    */
-  public getUpperImgBorder() {
-    return this.y_coordinate;
+  public getUpperImgBorder(): number {
+    return this.yPos;
   }
 
   /**
    * getImgWidth
    */
-  public getImgWidth() {
+  public getImgWidth(): number {
     let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
     return img.width * SCALING_FACTOR.mainChar;
   }
@@ -102,7 +115,7 @@ export class MainCharacter {
   /**
    * getImgHeight
    */
-  public getImgHeight() {
+  public getImgHeight(): number {
     let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
     return img.height * SCALING_FACTOR.mainChar;
   }
@@ -122,12 +135,12 @@ export class MainCharacter {
     this.collBottles++;
     this.canvasComponent.bottles.placedB.splice(i, 1);
   }
-  public setX_coordinate(x_coordinate: number): void {
-    this.x_coordinate = x_coordinate;
+  public setX_coordinate(xPos: number): void {
+    this.xPos = xPos;
   }
 
-  public setY_coordinate(y_coordinate: number): void {
-    this.y_coordinate = y_coordinate;
+  public setY_coordinate(yPos: number): void {
+    this.yPos = yPos;
   }
 
   public getCollBottles(): number {
@@ -150,7 +163,7 @@ export class MainCharacter {
     this.isRunningRight = b;
   }
 
-  public getLives() {
+  public getLives(): number {
     return this.lives;
   }
 
@@ -258,15 +271,15 @@ export class MainCharacter {
     this.deadImg = deadImg;
   }
 
-  public isRunning() {
+  public isRunning(): boolean {
     return this.isRunningLeft == true || this.isRunningRight == true;
   }
 
   public isLanding(border: number) {
-    return this.y_coordinate < border && this.jumpImg > 6 && this.jumpImg < 9;
+    return this.yPos < border && this.jumpImg > 6 && this.jumpImg < 9;
   }
 
-  public getMainCharImg() {
+  public getMainCharImg(): HTMLImageElement {
     // console.log('imgSrc: ' + this.imgSrc);
     // console.log('img: ' + this.img);
     // console.log(imgCache);
@@ -291,53 +304,7 @@ export class MainCharacter {
     return this.img;
   }
 
-  // checkCollision(
-  //   x_Obj: number,
-  //   y: number,
-  //   objImgWidth: number,
-  //   objImgHeight: number
-  // ) {
-  //   console.log('coin x_Obj: ' + x_Obj);
-  //   console.log('coin y: ' + y);
-  //   console.log('char x_Obj: ' + this.x_coordinate);
-  //   console.log('char y: ' + this.y_coordinate);
-  //   console.log('bg_elements: ' + this.canvasComponent.bg_elements);
-  //   console.log(imgCache[104]);
-  //   console.log(imgCache[104].width);
-  //   console.log(imgCache[104].height);
-
-  //   if (this.isObjLeftOfCharacter(x_Obj, objImgWidth) || this.isObjRightOfCharacter()) {
-
-  //   } else {
-
-  //   }
-  //   // this.isOverlappingLeftBorder(x_Obj, objImgWidth) &&
-  //   // this.isOverlappingRightBorder() x_Obj <= this.x_coordinate + this.img.width &&
-  //   // y + objImgHeight >= this.y_coordinate &&
-  //   // y <= this.y_coordinate + this.img.height
-  // }
-
-  // private isObjRightOfCharacter(x_Obj: number, objImgWidth: number) {
-
-  // }
-
-  // private isObjLeftOfCharacter(x_Obj: number, objImgWidth: number) {
-  //   return (
-  //     x_Obj + objImgWidth + this.canvasComponent.bg_elements <
-  //     this.x_coordinate - this.canvasComponent.bg_elements
-  //   );
-  // }
-
-  // private isOverlappingRightBorder() {}
-
-  // private isOverlappingLeftBorder(x_Obj: number, objImgWidth: number) {
-  //   return (
-  //     this.x_coordinate + this.img.width - this.canvasComponent.bg_elements >=
-  //       x_Obj + this.canvasComponent.bg_elements && this.isCharInside
-  //   );
-  // }
-
-  public updateCharacterIdle() {
+  public updateCharacterIdle(): void {
     if (this.isIdle && !this.isHit && !this.canvasComponent.charLostAt) {
       this.updateIdleState();
     }
@@ -346,7 +313,7 @@ export class MainCharacter {
     }
   }
 
-  private updateIdleState() {
+  private updateIdleState(): void {
     let diff = new Date().getTime() - this.lastIdleStarted;
     if (diff > IDLE_ANIMATION_SWITCH) {
       let n = IMG_SRCs.charIdle.length;
@@ -362,7 +329,7 @@ export class MainCharacter {
     }
   }
 
-  private updateLongIdleState() {
+  private updateLongIdleState(): void {
     let diff = new Date().getTime() - this.lastIdleStarted;
     if (diff > IDLE_ANIMATION_SWITCH) {
       let src =
@@ -372,7 +339,7 @@ export class MainCharacter {
     }
   }
 
-  public updateJumpCharacter() {
+  public updateJumpCharacter(): void {
     let diffJump = new Date().getTime() - this.lastJumpStarted;
     let diffJumpAnim = new Date().getTime() - this.lastJumpAnimationStarted;
     if (this.isJumping == true) {
@@ -383,7 +350,7 @@ export class MainCharacter {
   }
 
   private updateJump(diffJump: number, diffJumpAnim: number) {
-    this.y_coordinate -= JUMP_SPEED;
+    this.yPos -= JUMP_SPEED;
     this.adjustJumpAnimation(diffJumpAnim);
     this.checkForJumpingPeak(diffJump);
   }
@@ -408,13 +375,13 @@ export class MainCharacter {
     }
   }
 
-  private updateFall() {
-    this.y_coordinate += JUMP_SPEED;
+  private updateFall(): void {
+    this.yPos += JUMP_SPEED;
     this.adjustLandingAnimation();
     this.adjustIfJumpEnd();
   }
 
-  private adjustLandingAnimation() {
+  private adjustLandingAnimation(): void {
     let border = Y_COORDINATE_BASE_LEVEL - 0.05 * Y_COORDINATE_BASE_LEVEL;
     if (
       this.isLanding(border) &&
@@ -426,12 +393,12 @@ export class MainCharacter {
     }
   }
 
-  public isInJumpProcess() {
+  public isInJumpProcess(): boolean {
     return this.isJumping == true || this.isFalling == true;
   }
 
-  private adjustIfJumpEnd() {
-    if (this.y_coordinate >= Y_COORDINATE_BASE_LEVEL) {
+  private adjustIfJumpEnd(): void {
+    if (this.yPos >= Y_COORDINATE_BASE_LEVEL) {
       this.isFalling = false;
       this.jumpImg = 0;
       this.resetIdle();
@@ -441,7 +408,7 @@ export class MainCharacter {
     }
   }
 
-  private resetIdle() {
+  private resetIdle(): void {
     this.idleImg = 0;
     this.lastIdleStarted = new Date().getTime();
   }
@@ -449,12 +416,12 @@ export class MainCharacter {
   /**
    * name
    */
-  public updateRunningState() {
+  public updateRunningState(): void {
     this.checkRunningLeft();
     this.checkRunningRight();
   }
 
-  private checkRunningLeft() {
+  private checkRunningLeft(): void {
     if (
       this.isRunningRight &&
       this.canvasComponent.bg_elements > RIGHT_BORDER
@@ -465,7 +432,7 @@ export class MainCharacter {
     }
   }
 
-  private checkRunningRight() {
+  private checkRunningRight(): void {
     if (this.isRunningLeft && this.canvasComponent.bg_elements < LEFT_BORDER) {
       this.adjustAudioForJump();
       this.canvasComponent.bg_elements += WALK_SPEED;
@@ -473,7 +440,7 @@ export class MainCharacter {
     }
   }
 
-  private adjustAudioForJump() {
+  private adjustAudioForJump(): void {
     if (this.isInJumpProcess() && !AUDIO.RUNNING.paused) {
       AUDIO.RUNNING.pause();
     }
@@ -482,7 +449,7 @@ export class MainCharacter {
     }
   }
 
-  private adjustWalkAnimation() {
+  private adjustWalkAnimation(): void {
     if (!this.isJumping && !this.isHit) {
       let diff = new Date().getTime() - this.lastWalkStarted;
       if (diff > WALK_ANIMATION_SWITCH) {
@@ -491,27 +458,27 @@ export class MainCharacter {
     }
   }
 
-  private changeWalkAnimation() {
+  private changeWalkAnimation(): void {
     let src = IMG_SRCs.charWalk[this.walkImg++ % IMG_SRCs.charWalk.length];
     this.imgSrc = src;
     this.lastWalkStarted = new Date().getTime();
   }
 
-  public updateCharacterHit() {
+  public updateCharacterHit(): void {
     let timePassed = new Date().getTime() - this.lastHitAnimation;
-    if (this.isHit && timePassed > 70) {
-      let n = this.hitImg++;
-      if (n < IMG_SRCs.charHit.length) {
-        this.imgSrc = IMG_SRCs.charHit[n];
-        this.lastHitAnimation = new Date().getTime();
-      } else {
+    if (this.isHit && timePassed > 150) {
+      this.resetIdle();
+      this.imgSrc = IMG_SRCs.charHit[this.hitImg];
+      this.hitImg++;
+      this.lastHitAnimation = new Date().getTime();
+      if (this.hitImg === IMG_SRCs.charHit.length) {
         this.hitImg = 0;
         this.isHit = false;
       }
     }
   }
 
-  public updateCharacterDead() {
+  public updateCharacterDead(): void {
     let timePassed = new Date().getTime() - this.canvasComponent.charLostAt;
     if (this.canvasComponent.charLostAt && timePassed > 100) {
       let n = this.deadImg++;
@@ -522,7 +489,7 @@ export class MainCharacter {
     }
   }
 
-  public performCharHit() {
+  public performCharHit(): void {
     this.lives--;
     this.lastHitHappened = new Date().getTime();
     this.isHit = true;
@@ -531,7 +498,7 @@ export class MainCharacter {
   /**
    * endRunningState
    */
-  public endRunningStateLeft() {
+  public endRunningStateLeft(): void {
     this.resetIdle();
     this.isIdle = true;
     this.imgSrc = IMG_SRCs.charIdle[0];
@@ -541,7 +508,7 @@ export class MainCharacter {
   /**
    * endRunningStateRight
    */
-  public endRunningStateRight() {
+  public endRunningStateRight(): void {
     this.resetIdle();
     this.isIdle = true;
     this.imgSrc = IMG_SRCs.charIdle[0];
@@ -551,21 +518,20 @@ export class MainCharacter {
   /**
    * startBottleThrow
    */
-  public startBottleThrow() {
+  public startBottleThrow(dateTime: number): void {
     this.collBottles--;
-    this.lastBottleThrowTime = new Date().getTime();
-    AUDIO.THROW_BOTTLE.play();
+    this.lastBottleThrowTime = dateTime;
   }
 
   /**
    * startRunning
    */
-  public startRunningLeft() {
+  public startRunningLeft(): void {
     this.isRunningLeft = true;
     this.isIdle = false;
   }
 
-  public startRunningRight() {
+  public startRunningRight(): void {
     this.isRunningRight = true;
     this.isIdle = false;
   }
@@ -573,7 +539,7 @@ export class MainCharacter {
   /**
    * startJump
    */
-  public startJump() {
+  public startJump(): void {
     this.lastJumpStarted = new Date().getTime();
     this.isJumping = true;
     this.isIdle = false;

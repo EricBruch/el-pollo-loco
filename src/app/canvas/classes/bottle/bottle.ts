@@ -11,13 +11,14 @@ export class Bottle {
     this.yPos = yPositions.bottles;
     this.imgSrc = srcPath;
     this.type = type === 0 ? 'middle' : type === 1 ? 'left' : 'right';
+    this.scale = SCALING_FACTOR.bottle;
   }
 
   private xPos: number;
   private yPos: number;
   private imgSrc: string;
   private type: string;
-  private scale: SCALING_FACTOR.bottle;
+  private scale: number;
 
   /**
    * getCurrentXPosition

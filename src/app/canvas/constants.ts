@@ -10,6 +10,8 @@ export const LEFT_BORDER = 100;
 export const RIGHT_BORDER = -6500;
 export const CHARACTER_LIVES = 50;
 
+export const Y_GROUND_LEVEL = 610;
+
 export const X_COORDINATE_BASE_LEVEL = 100; // in px
 export const Y_COORDINATE_BASE_LEVEL = 260; // in px
 
@@ -42,7 +44,7 @@ export enum SCALING_FACTOR {
   coin = 0.75,
   chicken = 0.3,
   endboss = 0.4,
-  throwBottle = 0.25,
+  throwBottle = 0.5,
   bottle = 0.25,
 }
 
@@ -57,18 +59,21 @@ export enum IMG_SRC_KEYS {
   pollitoWALK = 'pollitoWALK',
   gallinitaWalk = 'gallinitaWalk',
   bottles = 'bottles',
+  bottlesSpinning = 'bottlesSpinning',
+  bottlesSplash = 'bottlesSplash',
+
 }
 
 export const CHICKEN_START_X_COORD = [
-  1000,
-  1400,
-  1800,
-  2500,
-  3000,
-  3300,
-  3800,
-  4200,
-  4500,
+  // 1000,
+  // 1400,
+  // 1800,
+  // 2500,
+  // 3000,
+  // 3300,
+  // 3800,
+  // 4200,
+  // 4500,
 ];
 export const COINS_START_X_COORD = [
   // 800,

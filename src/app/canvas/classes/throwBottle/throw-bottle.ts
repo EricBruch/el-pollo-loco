@@ -1,10 +1,10 @@
 import {
   BOTTLE_STATUS,
+  canvasSize,
   GRAVITY,
   IMG_SRCs,
   IMG_SRC_KEYS,
   SCALING_FACTOR,
-  Y_GROUND_LEVEL,
 } from '../../constants';
 import { ImageCacheService } from '../../../services/image-cache.service';
 
@@ -60,7 +60,7 @@ export class ThrowBottle {
    * isOnGroundLevel
    */
   public isOnGroundLevel() {
-    return this.yPos >= Y_GROUND_LEVEL;
+    return this.yPos >= canvasSize.yGroundLevel;
   }
 
   public getOpacity(): number {

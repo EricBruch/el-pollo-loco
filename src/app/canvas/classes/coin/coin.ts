@@ -3,12 +3,13 @@ import {
   IMG_SRCs,
   IMG_SRC_KEYS,
   SCALING_FACTOR,
-  Y_COORDINATE_BASE_LEVEL,
+  CHAR_Y_START,
+  canvasSize,
 } from '../../constants';
 
 export class Coin {
-  private posX: number;
-  private posY: number;
+  private xPos: number;
+  private yPos: number;
   private scale: number;
   private opacity: number;
   private imgSrc: string;
@@ -16,17 +17,20 @@ export class Coin {
 
   constructor(
     xCoordinate: number,
-    yCoordinate: number,
-    imgNr: number,
-    srcPath: string,
     private ImageCacheService: ImageCacheService
   ) {
-    this.posX = xCoordinate;
-    this.posY = yCoordinate + Y_COORDINATE_BASE_LEVEL;
-    this.imgNr = imgNr;
+    this.imgNr = Math.round(Math.random());
+    let srcPath = this.ImageCacheService.getImgSrcPathByKey(
+      'coins',
+      this.imgNr
+    );
     this.imgSrc = srcPath;
     this.scale = SCALING_FACTOR.coin;
     this.opacity = 1;
+    this.xPos = xCoordinate;
+    let intvID = setInterval(() => {
+      this.setYPosWhenCanvasDefined(intvID);
+    });
   }
 
   public getImgSrc(): string {
@@ -38,7 +42,7 @@ export class Coin {
   }
 
   public getLeftImgBorder(): number {
-    return this.posX;
+    return this.xPos;
   }
 
   public getImgNr(): number {
@@ -55,20 +59,33 @@ export class Coin {
     );
   }
 
+  private setYPosWhenCanvasDefined(intvID) {
+    if (canvasSize.height && canvasSize.width) {
+      this.yPos =
+        canvasSize.height * 0.73 -
+        canvasSize.height * this.getRndNumber(0, 0.35);
+      clearInterval(intvID);
+    }
+  }
+
+  private getRndNumber(min: number, max: number): number {
+    return Math.random() * (max - min) + min;
+  }
+
   public getCurrentXPosition(bg_elements: number): number {
-    return this.posX + bg_elements;
+    return this.xPos + bg_elements;
   }
 
-  public setPosX(posX: number): void {
-    this.posX = posX;
+  public setXPos(xPos: number): void {
+    this.xPos = xPos;
   }
 
-  public getPosY(): number {
-    return this.posY;
+  public getYPos(): number {
+    return this.yPos;
   }
 
-  public setPosY(posY: number): void {
-    this.posY = posY;
+  public setYPos(yPos: number): void {
+    this.yPos = yPos;
   }
 
   public getScale(): number {

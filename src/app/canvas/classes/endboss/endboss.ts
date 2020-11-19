@@ -1,7 +1,7 @@
 import { CanvasComponent } from '../../canvas.component';
 import {
   BOSS_X_START,
-  BOSS_Y_START,
+  canvasSize,
   ENDBOSS_STATUS,
   IMG_SRCs,
   SCALING_FACTOR,
@@ -21,8 +21,8 @@ export class Endboss {
   private attackImgNr: number;
   private moveLeft: boolean;
   private imgSrc: string;
-  private pos_x: number;
-  private pos_y: number;
+  private xPos: number;
+  private yPos: number;
   private CanvasComponent: CanvasComponent;
   private img: HTMLImageElement;
   private scale: number;
@@ -41,12 +41,15 @@ export class Endboss {
     this.attackImgNr = 0;
     this.moveLeft = true;
     this.imgSrc = IMG_SRCs.giantGallinitaWalk[0];
-    this.pos_x = BOSS_X_START;
-    this.pos_y = BOSS_Y_START;
     this.CanvasComponent = canvas;
     this.img = new Image();
     this.img.src = this.imgSrc;
     this.scale = SCALING_FACTOR.endboss;
+    this.xPos = BOSS_X_START;
+    let intvID = setInterval(() => {
+      this.setYPosWhenCanvasDefined(intvID);
+    });
+
   }
 
   public getScale(): number {
@@ -57,11 +60,18 @@ export class Endboss {
     this.scale = scale;
   }
 
+  private setYPosWhenCanvasDefined(intvID: number): void {
+    if (canvasSize.height && canvasSize.width) {
+      this.yPos = canvasSize.height * 0.40;
+      clearInterval(intvID);
+    }
+  }
+
   /**
    * getCurrentXPosition
    */
   public getCurrentXPosition() {
-    return this.pos_x + this.CanvasComponent.bg_elements;
+    return this.xPos + this.CanvasComponent.bg_elements;
   }
 
   /**
@@ -192,19 +202,19 @@ export class Endboss {
   }
 
   public getLeftImgBorder(): number {
-    return this.pos_x;
+    return this.xPos;
   }
 
-  public setPos_x(pos_x: number): void {
-    this.pos_x = pos_x;
+  public setxPos(xPos: number): void {
+    this.xPos = xPos;
   }
 
   public getUpperImgBorder(): number {
-    return this.pos_y;
+    return this.yPos;
   }
 
-  public setPos_y(pos_y: number): void {
-    this.pos_y = pos_y;
+  public setyPos(yPos: number): void {
+    this.yPos = yPos;
   }
 
   public updateEndboss() {
@@ -256,8 +266,8 @@ export class Endboss {
       this.deathImgNr++;
     }
     this.imgSrc = IMG_SRCs.giantGallinitaDeath[this.deathImgNr];
-    this.pos_x += timePassed * 0.1;
-    this.pos_y -= timePassed * 0.1;
+    this.xPos += timePassed * 0.1;
+    this.yPos -= timePassed * 0.1;
   }
 
   private adjustEndbossWalking() {
@@ -313,14 +323,14 @@ export class Endboss {
     let x_left_border = BOSS_X_START - Math.round(Math.random() * 1000);
     let x_right_border = BOSS_X_START + Math.round(Math.random() * 1000);
     if (this.moveLeft) {
-      if (this.pos_x > x_left_border) {
-        this.pos_x -= move_x;
+      if (this.xPos > x_left_border) {
+        this.xPos -= move_x;
       } else {
         this.moveLeft = false;
       }
     } else {
-      if (this.pos_x < x_right_border) {
-        this.pos_x += move_x;
+      if (this.xPos < x_right_border) {
+        this.xPos += move_x;
       } else {
         this.moveLeft = true;
       }

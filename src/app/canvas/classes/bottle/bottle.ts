@@ -1,17 +1,19 @@
 import { ImageCacheService } from '../../../services/image-cache.service';
-import { SCALING_FACTOR, yPositions } from '../../constants';
+import { canvasSize, IMG_SRCs, IMG_SRC_KEYS, SCALING_FACTOR } from '../../constants';
 export class Bottle {
   constructor(
     xPos: number,
-    srcPath: string,
-    type: number,
     private ImageCacheSerice: ImageCacheService
   ) {
-    this.xPos = xPos;
-    this.yPos = yPositions.bottles;
+    let rnd = Math.round(Math.random() * 2);
+    let srcPath = IMG_SRCs[IMG_SRC_KEYS.bottles][rnd];
     this.imgSrc = srcPath;
-    this.type = type === 0 ? 'middle' : type === 1 ? 'left' : 'right';
+    this.type = rnd === 0 ? 'middle' : rnd === 1 ? 'left' : 'right';
     this.scale = SCALING_FACTOR.bottle;
+    this.xPos = xPos;
+    let intvID = setInterval(() => {
+      this.setYPosWhenCanvasDefined(intvID);
+    });
   }
 
   private xPos: number;
@@ -26,6 +28,14 @@ export class Bottle {
   public getCurrentXPosition(bg_elements) {
     return this.xPos + bg_elements;
   }
+
+  private setYPosWhenCanvasDefined(intvID: number): void {
+    if (canvasSize.height && canvasSize.width) {
+      this.yPos = canvasSize.height * 0.80;
+      clearInterval(intvID);
+    }
+  }
+
   public getLeftImgBorder(): number {
     return this.xPos;
   }

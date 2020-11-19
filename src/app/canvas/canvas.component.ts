@@ -13,6 +13,7 @@ import {
   BOTTLE_STATUS,
   SCALING_FACTOR,
   X_COLLISION_ADJUSTMENT,
+  canvasSize,
 } from './constants';
 import { coins, imgCache, loseImgs, chickens, bottles } from './objects';
 import { MainCharacter as mainChar } from './classes/mainCharacter/main-character';
@@ -51,15 +52,7 @@ export class CanvasComponent implements OnInit {
   background_image = new Image();
   /*
   TODOs
-  * + Sound für aufeinanderfolgenden Flaschenwurf abspielen
-  * + Animation Chicken
-  * + Animation Coins
-  * + Create Class for Bottles
-  *   + needs to hold y coordination
-  * 
   * + dynamische Größe Canvas (Vollbildmodus)
-  * + Coins:
-  *   + make Coin Class to give bg_elements and make bg_elements adustment outside
 */
   @ViewChild('canvas')
   Canvas: ElementRef<HTMLCanvasElement>;
@@ -68,10 +61,8 @@ export class CanvasComponent implements OnInit {
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    // console.log(globalThis.window.visualViewport.width);
-    // console.log(globalThis.window.visualViewport.height);
-    this.setCanvasFullScreen();
     this.context = this.Canvas.nativeElement.getContext('2d');
+    this.setCanvasFullScreen();
     this.loadResources();
     this.checkCollisionDetection();
     this.calculateChickenPosition();
@@ -84,10 +75,12 @@ export class CanvasComponent implements OnInit {
   }
 
   setCanvasFullScreen() {
-    this.Canvas.nativeElement.width = document.documentElement.clientWidth;
-    //window.outerWidth;
-    this.Canvas.nativeElement.height = document.documentElement.clientHeight;
-    // window.outerHeight;
+    let canvas = this.Canvas.nativeElement
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
+    canvasSize.height =  canvas.height;
+    canvasSize.width = canvas.width;
+    canvasSize.yGroundLevel = canvasSize.height * 0.8;
   }
 
   loadResources() {
@@ -275,13 +268,13 @@ export class CanvasComponent implements OnInit {
 
   drawPlayScreens() {
     this.drawBackgroundPicture();
-    this.drawCharacter();
-    this.drawChicken();
     this.drawBottles();
+    this.drawChicken();
     this.drawCoins();
-    this.drawItemOverview();
-    this.drawThrowBottle();
     this.drawEndBoss();
+    this.drawCharacter();
+    this.drawThrowBottle();
+    this.drawItemOverview();
   }
 
   drawEndScreen() {
@@ -446,7 +439,7 @@ export class CanvasComponent implements OnInit {
       this.addBgObject(
         coin.getImgSrc(),
         coin.getLeftImgBorder(),
-        coin.getPosY(),
+        coin.getYPos(),
         coin.getScale(),
         coin.getOpacity()
       );
@@ -464,21 +457,19 @@ export class CanvasComponent implements OnInit {
 
   checkCollisionChicken() {
     chickens.forEach((chicken) => {
-      let chickenImgWidthAdjusted =
-        chicken.getImgWidth() - X_COLLISION_ADJUSTMENT.mainCharWithChicken;
       let timePassed =
         new Date().getTime() - this.CanvasMainCharacter.getLastHitHappened();
       let hasCollision = this.CollisionService.areObjectsInCollision(
         chicken.getCurrentXPosition(this.bg_elements),
-        chicken.getUpperImgBorder(),
-        chickenImgWidthAdjusted,
-        chicken.getImgHeight(),
-        this.CanvasMainCharacter.getLeftImgBorder(),
-        this.CanvasMainCharacter.getUpperImgBorder(),
-        this.CanvasMainCharacter.getImgWidth(),
-        this.CanvasMainCharacter.getImgHeight()
+        chicken.getUpperImgBorder() - 25,
+        chicken.getImgWidth() - 35,
+        chicken.getImgHeight() - 25,
+        this.CanvasMainCharacter.getLeftImgBorder() - 35,
+        this.CanvasMainCharacter.getUpperImgBorder() - 35,
+        this.CanvasMainCharacter.getImgWidth() - 35,
+        this.CanvasMainCharacter.getImgHeight() - 25
       );
-      if (hasCollision && timePassed > 2000) {
+      if (hasCollision && timePassed > 1500) {
         if (this.CanvasMainCharacter.getLives() > 0) {
           this.CanvasMainCharacter.performCharHit();
         }
@@ -528,7 +519,7 @@ export class CanvasComponent implements OnInit {
         X_COLLISION_ADJUSTMENT.mainCharWithCoin;
       let isHit = this.CollisionService.areObjectsInCollision(
         coin.getCurrentXPosition(this.bg_elements),
-        coin.getPosY(),
+        coin.getYPos(),
         coin.getImgWidth() - 0,
         coin.getImgHeight() - 0,
         this.CanvasMainCharacter.getLeftImgBorder(),
@@ -761,5 +752,10 @@ export class CanvasComponent implements OnInit {
     // if (e.code == 'Space') {
     //   this.isJumping = false;
     // }
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event) {
+    this.setCanvasFullScreen();
   }
 }

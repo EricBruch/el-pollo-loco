@@ -15,16 +15,7 @@ export class CreateCoinsService {
    */
   public createCoins() {
     COINS_START_X_COORD.forEach((xPos) => {
-      let yPosRnd = Math.round(Math.random() * 250);
-      let imgNr = Math.round(Math.random() * (IMG_SRCs['coins'].length - 1));
-      let srcPath = this.ImageCacheService.getImgSrcPathByKey('coins', imgNr);
-      let coin = new Coin(
-        xPos,
-        yPosRnd,
-        imgNr,
-        srcPath,
-        this.ImageCacheService
-      );
+      let coin = new Coin(xPos, this.ImageCacheService);
       coins.push(coin);
     });
   }

@@ -1,6 +1,5 @@
 import {
-  X_COORDINATE_BASE_LEVEL,
-  Y_COORDINATE_BASE_LEVEL,
+  CHAR_X_POS,
   IMG_SRCs,
   IDLE_ANIMATION_SWITCH,
   JUMP_SPEED,
@@ -14,13 +13,15 @@ import {
   SCALING_FACTOR,
   CHARACTER_LIVES,
   IDLE_ANIMATION_START,
+  canvasSize,
 } from './../../constants';
 import { ImageCacheService } from '../../../services/image-cache.service';
-import { coins, imgCache } from '../../objects';
+import { bottles, coins, imgCache } from '../../objects';
 
 export class MainCharacter {
   private xPos: number;
   private yPos: number;
+  private yBaseLevel: number;
   public collBottles: number;
   private collCoins: number;
   private lives: number;
@@ -28,6 +29,7 @@ export class MainCharacter {
   private isLongIdle: boolean;
   private isJumping: boolean;
   private isFalling: boolean;
+  private isLanding: boolean;
   private isRunningRight: boolean;
   private isRunningLeft: boolean;
   private isHit: boolean;
@@ -51,12 +53,11 @@ export class MainCharacter {
   constructor(component, private ImageCacheService: ImageCacheService) {
     this.canvasComponent = component;
     this.lives = CHARACTER_LIVES;
-    this.xPos = X_COORDINATE_BASE_LEVEL;
-    this.yPos = Y_COORDINATE_BASE_LEVEL;
     this.isIdle = false;
     this.isLongIdle = false;
     this.isJumping = false;
     this.isFalling = false;
+    this.isLanding = false;
     this.isRunningRight = false;
     this.isRunningLeft = false;
     this.isHit = false;
@@ -78,6 +79,10 @@ export class MainCharacter {
     this.deadImg = 0;
     this.collBottles = 50;
     this.collCoins = 0;
+    this.xPos = CHAR_X_POS;
+    let intvID = setInterval(() => {
+      this.setYPosWhenCanvasDefined(intvID);
+    }, 50);
   }
 
   /**
@@ -85,6 +90,14 @@ export class MainCharacter {
    */
   public getXThrowPosition(): number {
     return this.xPos - this.canvasComponent.bg_elements + 120;
+  }
+
+  private setYPosWhenCanvasDefined(intvID) {
+    if (canvasSize.height && canvasSize.width) {
+      this.yPos = canvasSize.height * 0.5;
+      this.yBaseLevel = this.yPos;
+      clearInterval(intvID);
+    }
   }
 
   /**
@@ -136,7 +149,7 @@ export class MainCharacter {
    */
   public collBottle(i: number) {
     this.collBottles++;
-    this.canvasComponent.bottles.placedB.splice(i, 1);
+    bottles.splice(i, 1);
   }
   public setX_coordinate(xPos: number): void {
     this.xPos = xPos;
@@ -176,14 +189,6 @@ export class MainCharacter {
 
   public isIsLongIdle(): boolean {
     return this.isLongIdle;
-  }
-
-  public isIsJumping(): boolean {
-    return this.isJumping;
-  }
-
-  public isIsFalling(): boolean {
-    return this.isFalling;
   }
 
   public isIsRunningRight(): boolean {
@@ -254,10 +259,6 @@ export class MainCharacter {
     return this.jumpImg;
   }
 
-  public setJumpImg(jumpImg: number): void {
-    this.jumpImg = jumpImg;
-  }
-
   public getHitImg(): number {
     return this.hitImg;
   }
@@ -284,10 +285,6 @@ export class MainCharacter {
 
   public isRunning(): boolean {
     return this.isRunningLeft == true || this.isRunningRight == true;
-  }
-
-  public isLanding(border: number) {
-    return this.yPos < border && this.jumpImg > 6 && this.jumpImg < 9;
   }
 
   public getMainCharImg(): HTMLImageElement {
@@ -361,68 +358,117 @@ export class MainCharacter {
   }
 
   public updateJumpCharacter(): void {
-    let diffJump = new Date().getTime() - this.lastJumpStarted;
-    let diffJumpAnim = new Date().getTime() - this.lastJumpAnimationStarted;
-    if (this.isJumping == true) {
-      this.updateJump(diffJump, diffJumpAnim);
-    } else {
+    if (this.isJumping) {
+      this.updateJump();
+    }
+    if (this.isFalling) {
       this.updateFall();
+    }
+    if (this.isLanding) {
+      this.updateLanding();
     }
   }
 
-  private updateJump(diffJump: number, diffJumpAnim: number) {
+  private updateJump(): void {
     this.yPos -= JUMP_SPEED;
-    this.adjustJumpAnimation(diffJumpAnim);
-    this.checkForJumpingPeak(diffJump);
+    if (this.isJumpAnimationChangeDue()) {
+      this.adjustJumpAnimation();
+    }
+    if (this.isJumpPeakReached()) {
+      this.switchToFalling();
+    }
   }
 
-  private adjustJumpAnimation(diffJumpAnim: number) {
-    if (
+  private isJumpAnimationChangeDue(): boolean {
+    let diffJumpAnim = new Date().getTime() - this.lastJumpAnimationStarted;
+    return (
       diffJumpAnim > JUMP_ANIMATION_SWITCH &&
       this.jumpImg < 7 &&
       !this.isHit &&
       !this.canvasComponent.charLostAt
-    ) {
-      this.imgSrc = IMG_SRCs.charJump[++this.jumpImg];
-      this.lastJumpAnimationStarted = new Date().getTime();
-    }
+    );
   }
 
-  private checkForJumpingPeak(diffJump: number) {
-    if (diffJump > JUMP_TIME) {
-      this.isJumping = false;
-      this.isFalling = true;
-    }
+  private adjustJumpAnimation(): void {
+    this.imgSrc = IMG_SRCs.charJump[this.jumpImg++];
+    this.lastJumpAnimationStarted = new Date().getTime();
+  }
+
+  private isJumpPeakReached(): boolean {
+    let diffJump = new Date().getTime() - this.lastJumpStarted;
+    return diffJump > JUMP_TIME;
+  }
+
+  private switchToFalling(): void {
+    this.isJumping = false;
+    this.isFalling = true;
   }
 
   private updateFall(): void {
     this.yPos += JUMP_SPEED;
-    this.adjustLandingAnimation();
-    this.adjustIfJumpEnd();
+    if (this.isFallingAnimationChangeDue()) {
+      this.adjustFallAnimation();
+    }
+    if (this.isReachingGround()) {
+      this.switchToLanding();
+    }
+  }
+
+  private isFallingAnimationChangeDue(): boolean {
+    let diffFallAnim = new Date().getTime() - this.lastJumpAnimationStarted;
+    return (
+      diffFallAnim > 20 && // ADD Constant for fall switch animation
+      this.jumpImg > 6 &&
+      this.jumpImg < 9 &&
+      !this.isHit &&
+      !this.canvasComponent.charLostAt
+    );
+  }
+
+  private adjustFallAnimation(): void {
+    this.imgSrc = IMG_SRCs.charJump[this.jumpImg++];
+    this.lastJumpAnimationStarted = new Date().getTime();
+  }
+
+  private isReachingGround(): boolean {
+    return this.yPos >= this.yBaseLevel;
+  }
+
+  private switchToLanding() {
+    this.isFalling = false;
+    this.isLanding = true;
+  }
+
+  private updateLanding() {
+    if (this.isLandingAnimationChangeDue()) {
+      this.adjustLandingAnimation();
+    }
+    if (this.isLandingAnimationFinished()) {
+      this.endJumpingProcess();
+    }
+  }
+
+  private isLandingAnimationChangeDue(): boolean {
+    let diffLandAnim = new Date().getTime() - this.lastJumpAnimationStarted;
+    return diffLandAnim > 20 && this.jumpImg < IMG_SRCs['charJump'].length;
   }
 
   private adjustLandingAnimation(): void {
-    let border = Y_COORDINATE_BASE_LEVEL - 0.05 * Y_COORDINATE_BASE_LEVEL;
-    if (
-      this.isLanding(border) &&
-      !this.isHit &&
-      !this.canvasComponent.charLostAt
-    ) {
-      let src = IMG_SRCs.charJump[++this.jumpImg % IMG_SRCs.charJump.length];
-      this.imgSrc = src;
-    }
+    this.imgSrc = IMG_SRCs.charJump[this.jumpImg++];
+    this.lastJumpAnimationStarted = new Date().getTime();
+  }
+
+  private isLandingAnimationFinished() {
+    return this.jumpImg === IMG_SRCs['charJump'].length;
+  }
+
+  private endJumpingProcess() {
+    this.isLanding = false;
+    this.jumpImg = 0;
   }
 
   public isInJumpProcess(): boolean {
-    return this.isJumping == true || this.isFalling == true;
-  }
-
-  private adjustIfJumpEnd(): void {
-    if (this.yPos >= Y_COORDINATE_BASE_LEVEL) {
-      this.isFalling = false;
-      this.jumpImg = 0;
-      this.resetIdle();
-    }
+    return this.isJumping || this.isFalling || this.isLanding;
   }
 
   private resetIdle(): void {

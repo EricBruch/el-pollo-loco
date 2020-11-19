@@ -1,23 +1,26 @@
 //################################# Game Config ##################################
-export const JUMP_TIME = 300; // in ms
+export const JUMP_TIME = 350; // in ms
 export const JUMP_SPEED = 10;
 export const JUMP_ANIMATION_SWITCH = JUMP_TIME / 8; // 37,5 // in ms
 export const WALK_SPEED = 7;
 export const IDLE_ANIMATION_SWITCH = 3000; // in ms
 export const IDLE_ANIMATION_START = 5000; // in ms
 export const WALK_ANIMATION_SWITCH = 50; // in ms
+export const CHARACTER_LIVES = 50;
+export const CHAR_X_POS = 100; // in px
+export const CHAR_Y_START = 260; // in px
+
+export const BOSS_X_START = 6000;
+
 export const GRAVITY = 9.81;
 export const LEFT_BORDER = 100;
-export const RIGHT_BORDER = -6500;
-export const CHARACTER_LIVES = 50;
+export const RIGHT_BORDER = BOSS_X_START * -1 - 2000;
 
-export const Y_GROUND_LEVEL = 610;
-
-export const X_COORDINATE_BASE_LEVEL = 100; // in px
-export const Y_COORDINATE_BASE_LEVEL = 260; // in px
-
-export const BOSS_X_START = 5000;
-export const BOSS_Y_START = 225;
+export const canvasSize = {
+  width: undefined,
+  height: undefined,
+  yGroundLevel: undefined,
+};
 
 export enum ENDBOSS_STATUS {
   walk = 'walk',
@@ -52,7 +55,6 @@ export enum SCALING_FACTOR {
 export enum X_COLLISION_ADJUSTMENT {
   mainCharWithCoin = 140,
   mainCharWithTabasco = 100,
-  mainCharWithChicken = 65,
 }
 
 export enum IMG_SRC_KEYS {
@@ -62,29 +64,33 @@ export enum IMG_SRC_KEYS {
   bottles = 'bottles',
   bottlesSpinning = 'bottlesSpinning',
   bottlesSplash = 'bottlesSplash',
-
 }
 
 export const CHICKEN_START_X_COORD = [
-  1000,
-  1400,
-  1800,
-  2500,
-  3000,
-  3300,
-  3800,
-  4200,
-  4500,
+  // 1000,
+  // 1600,
+  // 2000,
+  // 2500,
+  // 3000,
+  // 3600,
+  // 3800,
+  // 4200,
+  // 4500,
+  // 5000,
 ];
 export const COINS_START_X_COORD = [
-  800,
-  1200,
-  1800,
-  1900,
-  2000,
-  2100,
-  2500,
-  2600,
+  // 600,
+  // 650,
+  // 700,
+  // 750,
+  // 800,
+  // 1200,
+  // 1800,
+  // 1900,
+  // 2000,
+  // 2100,
+  // 2500,
+  // 2600,
 ];
 
 export const BOTTLE_START_X_COORD = [
@@ -99,11 +105,6 @@ export const BOTTLE_START_X_COORD = [
   3000,
   3300,
 ];
-
-export const yPositions = {
-  chicken: 595,
-  bottles: 572,
-};
 
 //############################# Audio Sounds ############################
 export const AUDIO = {

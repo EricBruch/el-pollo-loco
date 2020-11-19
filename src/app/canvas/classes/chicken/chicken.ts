@@ -1,17 +1,17 @@
 import { ImageCacheService } from 'src/app/services/image-cache.service';
 import {
+  canvasSize,
   IMG_SRCs,
   IMG_SRC_KEYS,
   SCALING_FACTOR,
-  yPositions,
 } from '../../constants';
 
 export class Chicken {
   private imgNr: number;
   private imgSrc: string;
   private pollito: boolean;
-  private posX: number;
-  private posY: number;
+  private xPos: number;
+  private yPos: number;
   private scale: number;
   private opacity: number;
   private speed: number;
@@ -26,12 +26,14 @@ export class Chicken {
       this.imgSrc = IMG_SRCs.pollitoWALK[0];
       this.pollito = true;
     }
-    this.posX = xCoordinate;
-    this.posY = yPositions.chicken;
     this.scale = SCALING_FACTOR.chicken;
     this.opacity = 1;
     this.speed = Math.random() * 15;
     this.ImageCacheService = ImageCacheService;
+    this.xPos = xCoordinate;
+    let intvID = setInterval(() => {
+      this.setYPosWhenCanvasDefined(intvID);
+    });
   }
 
   public getImgSrc(): string {
@@ -43,6 +45,13 @@ export class Chicken {
       this.adjustImgNrPollito();
     } else {
       this.adjustImgNrGallinita();
+    }
+  }
+
+  private setYPosWhenCanvasDefined(intvID: number): void {
+    if (canvasSize.height && canvasSize.width) {
+      this.yPos = canvasSize.height * 0.83;
+      clearInterval(intvID);
     }
   }
 
@@ -75,29 +84,29 @@ export class Chicken {
   }
 
   public getLeftImgBorder(): number {
-    return this.posX;
+    return this.xPos;
   }
 
   public moveChicken(): void {
-    this.posX = this.posX - this.speed;
+    this.xPos = this.xPos - this.speed;
   }
 
   /**
    * getCurrentXPosition
    */
   public getCurrentXPosition(bg_elements: number) {
-    return this.posX + bg_elements;
+    return this.xPos + bg_elements;
   }
 
   /**
    * getUpperImgBorder
    */
   public getUpperImgBorder() {
-    return this.posY;
+    return this.yPos;
   }
 
-  public setPosY(posY: number): void {
-    this.posY = posY;
+  public setyPos(yPos: number): void {
+    this.yPos = yPos;
   }
 
   public getScale(): number {
@@ -136,15 +145,14 @@ export class Chicken {
    * getImgHeight
    */
   public getImgHeight(): number {
-      let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-      return img.height * SCALING_FACTOR.chicken;
+    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
+    return img.height * SCALING_FACTOR.chicken;
   }
 
   /**
    * getImg
    */
   public getImg(): HTMLImageElement {
-     return this.ImageCacheService.getImgFromCache(this.imgSrc);
-
+    return this.ImageCacheService.getImgFromCache(this.imgSrc);
   }
 }

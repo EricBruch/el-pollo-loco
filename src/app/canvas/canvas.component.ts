@@ -62,13 +62,16 @@ export class CanvasComponent implements OnInit {
   *   + make Coin Class to give bg_elements and make bg_elements adustment outside
 */
   @ViewChild('canvas')
-  myCanvas: ElementRef<HTMLCanvasElement>;
+  Canvas: ElementRef<HTMLCanvasElement>;
   public context: CanvasRenderingContext2D;
 
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    this.context = this.myCanvas.nativeElement.getContext('2d');
+    // console.log(globalThis.window.visualViewport.width);
+    // console.log(globalThis.window.visualViewport.height);
+    this.setCanvasFullScreen();
+    this.context = this.Canvas.nativeElement.getContext('2d');
     this.loadResources();
     this.checkCollisionDetection();
     this.calculateChickenPosition();
@@ -78,6 +81,13 @@ export class CanvasComponent implements OnInit {
     this.checkForLoseScreen();
     this.checkForCoinAnimation();
     this.draw();
+  }
+
+  setCanvasFullScreen() {
+    this.Canvas.nativeElement.width = document.documentElement.clientWidth;
+    //window.outerWidth;
+    this.Canvas.nativeElement.height = document.documentElement.clientHeight;
+    // window.outerHeight;
   }
 
   loadResources() {
@@ -259,7 +269,7 @@ export class CanvasComponent implements OnInit {
   }
 
   drawstartScreen() {
-    let canvas = this.myCanvas.nativeElement;
+    let canvas = this.Canvas.nativeElement;
     this.addBGPicture(this.startImage, 0, 0, canvas.width, canvas.height, 1, 1);
   }
 
@@ -402,7 +412,7 @@ export class CanvasComponent implements OnInit {
 
   drawLoseScreen() {
     let img = loseImgs[this.loseScreenImg];
-    let canvas = this.myCanvas.nativeElement;
+    let canvas = this.Canvas.nativeElement;
     this.addBGPicture(
       img,
       0 - this.bg_elements,
@@ -601,7 +611,7 @@ export class CanvasComponent implements OnInit {
 
   drawBackgroundPicture() {
     for (let i = -3; i < 15; i += 3) {
-      let canvas = this.myCanvas.nativeElement;
+      let canvas = this.Canvas.nativeElement;
       this.addBGPicture(
         this.background_image,
         canvas.width * i,

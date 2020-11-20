@@ -41,9 +41,10 @@ export class CanvasComponent implements OnInit {
   CanvasEndboss: Endboss;
   CanvasThrowBottle: ThrowBottle;
 
-  gameStarted = false;
-  gameFinished = false;
-  charLostAt = undefined;
+  gameStarted: boolean = false;
+  gameFinished: boolean = false;
+  charLostAt: number = undefined;
+  smallDevice: boolean = false;
 
   startImage = new Image();
   loseScreenImg = 0;
@@ -81,6 +82,9 @@ export class CanvasComponent implements OnInit {
     canvasSize.height = canvas.height;
     canvasSize.width = canvas.width;
     canvasSize.yGroundLevel = canvasSize.height * 0.8;
+    if (canvasSize.height <= 800 && canvasSize.width <= 768) {
+      this.smallDevice = true;
+    }
   }
 
   loadResources() {
@@ -250,8 +254,26 @@ export class CanvasComponent implements OnInit {
     }
   }
 
+  private drawSmallDeviceWarning(): void {
+    this.context.font = '30px Kalam';
+    this.context.fillText(
+      'El Pollo Locco is not adjusted to be used',
+      0,
+      canvasSize.height * (1/3)
+    );
+    this.context.fillText(
+      'with tablets or mobile devices',
+      0,
+      canvasSize.height * (2/3)
+    );
+  }
+
   drawStartScreen() {
     let canvas = this.Canvas.nativeElement;
+    if (this.smallDevice) {
+      this.drawSmallDeviceWarning();
+      return;
+    }
     this.addBGPicture(this.startImage, 0, 0, canvas.width, canvas.height, 1, 1);
   }
 
@@ -702,7 +724,7 @@ export class CanvasComponent implements OnInit {
   onKeyDown(e: KeyboardEvent) {
     if (e.code === 'Enter') {
       this.gameStarted = true;
-      this.playAudio(AUDIO.BG_MUSIC)
+      //this.playAudio(AUDIO.BG_MUSIC)
     }
     if (
       e.code === 'KeyD' &&

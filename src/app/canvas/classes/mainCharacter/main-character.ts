@@ -14,6 +14,7 @@ import {
   CHARACTER_LIVES,
   IDLE_ANIMATION_START,
   canvasSize,
+  CHAR_COLL_BOTTLES,
 } from './../../constants';
 import { ImageCacheService } from '../../../services/image-cache.service';
 import { bottles, coins, imgCache } from '../../objects';
@@ -77,7 +78,7 @@ export class MainCharacter {
     this.jumpImg = 0;
     this.hitImg = 0;
     this.deadImg = 0;
-    this.collBottles = 50;
+    this.collBottles = CHAR_COLL_BOTTLES;
     this.collCoins = 0;
     this.xPos = CHAR_X_POS;
     let intvID = setInterval(() => {

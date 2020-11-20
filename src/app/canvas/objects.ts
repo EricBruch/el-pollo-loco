@@ -4,8 +4,6 @@ import { Coin } from './classes/coin/coin';
 
 export let imgCache: HTMLImageElement[] = [];
 
-export let loseImgs: HTMLImageElement[] = [];
-
 export let coins: Coin[] = [];
 
 export let chickens: Chicken[] = [];

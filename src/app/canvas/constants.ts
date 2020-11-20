@@ -6,11 +6,12 @@ export const WALK_SPEED = 7;
 export const IDLE_ANIMATION_SWITCH = 3000; // in ms
 export const IDLE_ANIMATION_START = 5000; // in ms
 export const WALK_ANIMATION_SWITCH = 50; // in ms
-export const CHARACTER_LIVES = 50;
+export const CHARACTER_LIVES = 2;
+export const CHAR_COLL_BOTTLES = 50;
 export const CHAR_X_POS = 100; // in px
 export const CHAR_Y_START = 260; // in px
 
-export const BOSS_X_START = 6000;
+export const BOSS_X_START = 1000;
 
 export const GRAVITY = 9.81;
 export const LEFT_BORDER = 100;
@@ -67,30 +68,30 @@ export enum IMG_SRC_KEYS {
 }
 
 export const CHICKEN_START_X_COORD = [
-  // 1000,
-  // 1600,
-  // 2000,
-  // 2500,
-  // 3000,
-  // 3600,
-  // 3800,
-  // 4200,
-  // 4500,
-  // 5000,
+  1000,
+  1600,
+  2000,
+  2500,
+  3000,
+  3600,
+  3800,
+  4200,
+  4500,
+  5000,
 ];
 export const COINS_START_X_COORD = [
-  // 600,
-  // 650,
-  // 700,
-  // 750,
-  // 800,
-  // 1200,
-  // 1800,
-  // 1900,
-  // 2000,
-  // 2100,
-  // 2500,
-  // 2600,
+  600,
+  650,
+  700,
+  750,
+  800,
+  1200,
+  1800,
+  1900,
+  2000,
+  2100,
+  2500,
+  2600,
 ];
 
 export const BOTTLE_START_X_COORD = [
@@ -185,7 +186,7 @@ export const IMG_SRCs: any = {
     'assets/img/background/startscreen/start-0.png',
     'assets/img/background/startscreen/start-1.png',
   ],
-  endScreen: [
+  loseScreen: [
     'assets/img/background/endscreen/0-you_lost.png',
     'assets/img/background/endscreen/1-oh_no_you_lost.png',
     'assets/img/background/endscreen/2-Game_over.png',

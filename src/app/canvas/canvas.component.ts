@@ -15,7 +15,7 @@ import {
   X_COLLISION_ADJUSTMENT,
   canvasSize,
 } from './constants';
-import { coins, imgCache, loseImgs, chickens, bottles } from './objects';
+import { coins, imgCache, chickens, bottles } from './objects';
 import { MainCharacter as mainChar } from './classes/mainCharacter/main-character';
 import { Endboss } from './classes/endboss/endboss';
 import { ImageCacheService } from '../services/image-cache.service';
@@ -75,49 +75,38 @@ export class CanvasComponent implements OnInit {
   }
 
   setCanvasFullScreen() {
-    let canvas = this.Canvas.nativeElement
+    let canvas = this.Canvas.nativeElement;
     canvas.width = document.documentElement.clientWidth;
     canvas.height = document.documentElement.clientHeight;
-    canvasSize.height =  canvas.height;
+    canvasSize.height = canvas.height;
     canvasSize.width = canvas.width;
     canvasSize.yGroundLevel = canvasSize.height * 0.8;
   }
 
   loadResources() {
     this.setupImgCache();
-    this.loadAdditionalImgs();
+    this.loadStaticImages();
     this.loadResourcesService.loadResources();
     this.initalizeSound();
   }
 
-  loadAdditionalImgs() {
-    this.background_image.src = IMG_SRCs.bg_complete;
-    this.startImage.src = IMG_SRCs.startScreen[0];
-    this.loadLoseScreenImg();
-  }
-
-  loadLoseScreenImg() {
-    for (let i = 0; i < IMG_SRCs.endScreen.length; i++) {
-      const src = IMG_SRCs.endScreen[i];
-      let img = new Image();
-      img.src = src;
-      loseImgs.push(img);
-    }
+  loadStaticImages() {
+    this.background_image = this.ImageCacheService.getImgFromCache(
+      IMG_SRCs.bg_complete
+    );
+    this.startImage = this.ImageCacheService.getImgFromCache(
+      IMG_SRCs.startScreen[0]
+    );
   }
 
   checkForLoseScreen() {
-    let time = 1000;
     setInterval(() => {
       if (this.charLostAt) {
-        setInterval(() => {
-          if (this.loseScreenImg < IMG_SRCs.endScreen.length - 1) {
-            this.loseScreenImg++;
-          } else {
-            this.loseScreenImg = 0;
-          }
-        }, time);
+        this.loseScreenImg++;
+        this.loseScreenImg =
+          this.loseScreenImg % (IMG_SRCs.loseScreen.length - 1);
       }
-    }, time);
+    }, 1000);
   }
 
   checkForRunning() {
@@ -150,7 +139,7 @@ export class CanvasComponent implements OnInit {
     this.checkCharacterDead();
   }
 
-  checkCharacterHit() {
+  checkCharacterHit(): void {
     setInterval(() => {
       this.CanvasMainCharacter.updateCharacterHit();
     }, 30);
@@ -221,7 +210,7 @@ export class CanvasComponent implements OnInit {
     let status = this.getGameStatus();
     switch (status) {
       case GAME_STATUS.start:
-        this.drawstartScreen();
+        this.drawStartScreen();
         break;
 
       case GAME_STATUS.play:
@@ -261,7 +250,7 @@ export class CanvasComponent implements OnInit {
     }
   }
 
-  drawstartScreen() {
+  drawStartScreen() {
     let canvas = this.Canvas.nativeElement;
     this.addBGPicture(this.startImage, 0, 0, canvas.width, canvas.height, 1, 1);
   }
@@ -400,14 +389,22 @@ export class CanvasComponent implements OnInit {
 
   drawWinScreen() {
     this.context.font = '120px Kalam';
-    this.context.fillText('You won!', 250, 200);
+    this.context.fillText(
+      'You won!',
+      canvasSize.width / 2.5,
+      canvasSize.height / 2
+    );
   }
 
   drawLoseScreen() {
-    let img = loseImgs[this.loseScreenImg];
+    let imgService = this.ImageCacheService;
+    let srcPath = imgService.getImgSrcPathByKey(
+      'loseScreen',
+      this.loseScreenImg
+    );
     let canvas = this.Canvas.nativeElement;
     this.addBGPicture(
-      img,
+      imgService.getImgFromCache(srcPath),
       0 - this.bg_elements,
       0,
       canvas.width,
@@ -705,6 +702,7 @@ export class CanvasComponent implements OnInit {
   onKeyDown(e: KeyboardEvent) {
     if (e.code === 'Enter') {
       this.gameStarted = true;
+      this.playAudio(AUDIO.BG_MUSIC)
     }
     if (
       e.code === 'KeyD' &&

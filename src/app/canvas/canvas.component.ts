@@ -46,11 +46,13 @@ export class CanvasComponent implements OnInit {
   charLostAt: number = undefined;
   smallDevice: boolean = false;
 
-  startImage = new Image();
-  loseScreenImg = 0;
+  startImage: HTMLImageElement = new Image();
+  loseScreenImg: number = 0;
 
   bg_elements: number = 0;
-  background_image = new Image();
+  background_image: HTMLImageElement = new Image();
+
+  startGuideImg: HTMLImageElement = new Image();
   /*
   TODOs
   * + dynamische Größe Canvas (Vollbildmodus)
@@ -100,6 +102,9 @@ export class CanvasComponent implements OnInit {
     );
     this.startImage = this.ImageCacheService.getImgFromCache(
       IMG_SRCs.startScreen[0]
+    );
+    this.startGuideImg = this.ImageCacheService.getImgFromCache(
+      IMG_SRCs.infoGuide
     );
   }
 
@@ -259,12 +264,12 @@ export class CanvasComponent implements OnInit {
     this.context.fillText(
       'El Pollo Locco is not adjusted to be used',
       0,
-      canvasSize.height * (1/3)
+      canvasSize.height * (1 / 3)
     );
     this.context.fillText(
       'with tablets or mobile devices',
       0,
-      canvasSize.height * (2/3)
+      canvasSize.height * (2 / 3)
     );
   }
 
@@ -275,6 +280,15 @@ export class CanvasComponent implements OnInit {
       return;
     }
     this.addBGPicture(this.startImage, 0, 0, canvas.width, canvas.height, 1, 1);
+    this.addBGPicture(
+      this.startGuideImg,
+      canvasSize.width * 0.005,
+      canvasSize.height * 0.005,
+      this.startGuideImg.width,
+      this.startGuideImg.height,
+      1,
+      1
+    );
   }
 
   drawPlayScreens() {

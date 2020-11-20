@@ -81,9 +81,6 @@ export const CHICKEN_START_X_COORD = [
 ];
 export const COINS_START_X_COORD = [
   600,
-  650,
-  700,
-  750,
   800,
   1200,
   1800,
@@ -92,6 +89,7 @@ export const COINS_START_X_COORD = [
   2100,
   2500,
   2600,
+  4000,
 ];
 
 export const BOTTLE_START_X_COORD = [
@@ -265,4 +263,5 @@ export const IMG_SRCs: any = {
     'assets/img/background/objects/coin/coins-1.png',
     'assets/img/background/objects/coin/coins-2.png',
   ],
+  infoGuide: 'assets/img/background/infoguide/startGuide_el_pollo_locco.png',
 };

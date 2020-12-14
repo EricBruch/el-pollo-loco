@@ -14,14 +14,23 @@ import {
   SCALING_FACTOR,
   X_COLLISION_ADJUSTMENT,
   canvasSize,
+  canvasBaseSizes,
 } from './constants';
-import { coins, imgCache, chickens, bottles } from './objects';
+import {
+  coins,
+  imgCache,
+  chickens,
+  bottles,
+  scalingFactorAdjustment,
+} from './objects';
 import { MainCharacter as mainChar } from './classes/mainCharacter/main-character';
 import { Endboss } from './classes/endboss/endboss';
 import { ImageCacheService } from '../services/image-cache.service';
 import { CollisionService } from '../services/Collision/collision.service';
 import { LoadResourcesService } from '../services/loadResources/load-resources.service';
 import { ThrowBottle } from './classes/throwBottle/throw-bottle';
+import { setScalingAdjustment, addBGPicture } from './utils/utils';
+
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
@@ -55,7 +64,7 @@ export class CanvasComponent implements OnInit {
   startGuideImg: HTMLImageElement = new Image();
   /*
   TODOs
-  * + dynamische Größe Canvas (Vollbildmodus)
+  * draw Character function shouln't create a new image each time
 */
   @ViewChild('canvas')
   Canvas: ElementRef<HTMLCanvasElement>;
@@ -66,6 +75,12 @@ export class CanvasComponent implements OnInit {
   ngAfterViewInit(): void {
     this.context = this.Canvas.nativeElement.getContext('2d');
     this.setCanvasFullScreen();
+    setScalingAdjustment(
+      canvasSize.width,
+      canvasSize.height,
+      canvasBaseSizes,
+      scalingFactorAdjustment
+    );
     this.loadResources();
     this.checkCollisionDetection();
     this.calculateChickenPosition();
@@ -84,8 +99,9 @@ export class CanvasComponent implements OnInit {
     canvasSize.height = canvas.height;
     canvasSize.width = canvas.width;
     canvasSize.yGroundLevel = canvasSize.height * 0.8;
-    if (canvasSize.height <= 800 && canvasSize.width <= 768) {
+    if (canvasSize.width <= 1000) {
       this.smallDevice = true;
+      alert('El Pollo Locco not optimised for mobile usage');
     }
   }
 
@@ -279,15 +295,29 @@ export class CanvasComponent implements OnInit {
       this.drawSmallDeviceWarning();
       return;
     }
-    this.addBGPicture(this.startImage, 0, 0, canvas.width, canvas.height, 1, 1);
-    this.addBGPicture(
+    addBGPicture(
+      this.startImage,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+      1,
+      1,
+      1,
+      this.context,
+      this.bg_elements
+    );
+    addBGPicture(
       this.startGuideImg,
-      canvasSize.width * 0.005,
-      canvasSize.height * 0.005,
+      0,
+      0,
       this.startGuideImg.width,
       this.startGuideImg.height,
       1,
-      1
+      1,
+      1,
+      this.context,
+      this.bg_elements
     );
   }
 

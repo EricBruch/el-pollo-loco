@@ -123,6 +123,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "el-pollo-loco"
+    }
+  },
+  "defaultProject": "el-pollo-loco",
+  "cli": {
+    "analytics": "de5e2b43-eaa4-4585-89e8-0e22edd27e24"
+  }
 }

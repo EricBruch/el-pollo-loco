@@ -22,7 +22,7 @@ import { bottles, coins, imgCache } from '../../objects';
 export class MainCharacter {
   private xPos: number;
   private yPos: number;
-  private yBaseLevel: number;
+  private yGroundLevel: number;
   public collBottles: number;
   private collCoins: number;
   private lives: number;
@@ -81,8 +81,8 @@ export class MainCharacter {
     this.collBottles = CHAR_COLL_BOTTLES;
     this.collCoins = 0;
     this.xPos = CHAR_X_POS;
-    let intvID = setInterval(() => {
-      this.setYPosWhenCanvasDefined(intvID);
+    let intervallID = setInterval(() => {
+      this.setYPosWhenCanvasDefined(intervallID);
     }, 50);
   }
 
@@ -93,11 +93,11 @@ export class MainCharacter {
     return this.xPos - this.canvasComponent.bg_elements + 120;
   }
 
-  private setYPosWhenCanvasDefined(intvID) {
+  private setYPosWhenCanvasDefined(intervallID) {
     if (canvasSize.height && canvasSize.width) {
       this.yPos = canvasSize.height * 0.5;
-      this.yBaseLevel = this.yPos;
-      clearInterval(intvID);
+      this.yGroundLevel = this.yPos;
+      clearInterval(intervallID);
     }
   }
 
@@ -432,7 +432,7 @@ export class MainCharacter {
   }
 
   private isReachingGround(): boolean {
-    return this.yPos >= this.yBaseLevel;
+    return this.yPos >= this.yGroundLevel;
   }
 
   private switchToLanding() {

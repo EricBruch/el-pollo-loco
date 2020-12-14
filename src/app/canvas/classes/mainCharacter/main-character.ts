@@ -42,7 +42,6 @@ export class MainCharacter {
   private lastHitHappened: number;
   private lastHitAnimation: number;
   private lastBottleThrowTime: number;
-  private img: HTMLImageElement;
   private imgSrc: string;
   private idleImg: number;
   private walkImg: number;
@@ -50,6 +49,7 @@ export class MainCharacter {
   private hitImg: number;
   private deadImg: number;
   private canvasComponent;
+  private scale: number;
 
   constructor(component, private ImageCacheService: ImageCacheService) {
     this.canvasComponent = component;
@@ -70,9 +70,7 @@ export class MainCharacter {
     this.lastHitHappened = 0;
     this.lastHitAnimation = 0;
     this.lastBottleThrowTime = 0;
-    this.img = new Image();
     this.imgSrc = IMG_SRCs.charIdle[0];
-    this.img.src = this.imgSrc;
     this.idleImg = 0;
     this.walkImg = 0;
     this.jumpImg = 0;
@@ -81,6 +79,7 @@ export class MainCharacter {
     this.collBottles = CHAR_COLL_BOTTLES;
     this.collCoins = 0;
     this.xPos = CHAR_X_POS;
+    this.scale = SCALING_FACTOR.mainChar;
     let intervallID = setInterval(() => {
       this.setYPosWhenCanvasDefined(intervallID);
     }, 50);
@@ -288,29 +287,18 @@ export class MainCharacter {
     return this.isRunningLeft == true || this.isRunningRight == true;
   }
 
-  public getMainCharImg(): HTMLImageElement {
-    // console.log('imgSrc: ' + this.imgSrc);
-    // console.log('img: ' + this.img);
-    // console.log(imgCache);
+  /**
+   * getScale
+   */
+  public getScale(): number {
+    return this.scale;
+  }
 
-    // imgCache.forEach((element) => {
-    //   if (element.src.endsWith(this.imgSrc)) {
-    //     return (this.img = element); // weird not working
-    //     // return this.img;
-    //   }
-    // });
-
-    this.img = imgCache.find((img) => {
-      img.src.endsWith(this.imgSrc);
-    });
-
-    // create new Image if not found in cache
-    if (!this.img) {
-      this.img = new Image();
-      this.img.src = this.imgSrc;
-      // return this.img; // weird not working
-    }
-    return this.img;
+  /**
+   * return the img of this object
+   */
+  public getImg(): HTMLImageElement {
+    return this.ImageCacheService.getImgFromCache(this.imgSrc);
   }
 
   public checkCharacterIdle(): void {

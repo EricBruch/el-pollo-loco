@@ -11,7 +11,6 @@ import {
   AUDIO,
   GAME_STATUS,
   BOTTLE_STATUS,
-  SCALING_FACTOR,
   X_COLLISION_ADJUSTMENT,
   canvasSize,
   canvasBaseSizes,
@@ -29,7 +28,13 @@ import { ImageCacheService } from '../services/image-cache.service';
 import { CollisionService } from '../services/Collision/collision.service';
 import { LoadResourcesService } from '../services/loadResources/load-resources.service';
 import { ThrowBottle } from './classes/throwBottle/throw-bottle';
-import { setScalingAdjustment, addBGPicture } from './utils/utils';
+import {
+  setScalingAdjustment,
+  addBGObject,
+  drawBackgroundPictures,
+  drawObjects,
+  getAdjustedScalingFactor,
+} from './utils/utils';
 
 @Component({
   selector: 'app-canvas',
@@ -43,7 +48,7 @@ export class CanvasComponent implements OnInit {
     private loadResourcesService: LoadResourcesService
   ) {
     this.CanvasMainCharacter = new mainChar(this, ImageCacheService);
-    this.CanvasEndboss = new Endboss(this);
+    this.CanvasEndboss = new Endboss(this, ImageCacheService);
   }
 
   CanvasMainCharacter: mainChar;
@@ -65,6 +70,7 @@ export class CanvasComponent implements OnInit {
   /*
   TODOs
   * draw Character function shouln't create a new image each time
+  * collision detection variable with %
 */
   @ViewChild('canvas')
   Canvas: ElementRef<HTMLCanvasElement>;
@@ -239,7 +245,7 @@ export class CanvasComponent implements OnInit {
         break;
 
       case GAME_STATUS.play:
-        this.drawPlayScreens();
+        this.drawPlayScreen();
         break;
 
       case GAME_STATUS.end:
@@ -252,12 +258,20 @@ export class CanvasComponent implements OnInit {
   }
 
   drawCharacter() {
-    let img = this.CanvasMainCharacter.getMainCharImg();
+    let img = this.CanvasMainCharacter.getImg();
     let xAdjustment = 0;
     let imgWidthAdjustment = 1;
+    let scaleX = getAdjustedScalingFactor(
+      this.CanvasMainCharacter.getScale(),
+      scalingFactorAdjustment.x_ScalingAdjustment
+    );
+    let scaleY = getAdjustedScalingFactor(
+      this.CanvasMainCharacter.getScale(),
+      scalingFactorAdjustment.y_ScalingAdjustment
+    );
     if (this.CanvasMainCharacter.isIsRunningLeft()) {
       this.mirrorImg();
-      xAdjustment = img.width * SCALING_FACTOR.mainChar;
+      xAdjustment = img.width * scaleX;
       imgWidthAdjustment = -1;
     }
     // draw character
@@ -266,8 +280,8 @@ export class CanvasComponent implements OnInit {
         img,
         this.CanvasMainCharacter.getLeftImgBorder() - xAdjustment,
         this.CanvasMainCharacter.getUpperImgBorder(),
-        this.CanvasMainCharacter.getImgWidth() * imgWidthAdjustment,
-        this.CanvasMainCharacter.getImgHeight()
+        img.width * scaleX * imgWidthAdjustment,
+        img.height * scaleY
       );
     }
     if (this.CanvasMainCharacter.isIsRunningLeft()) {
@@ -295,7 +309,7 @@ export class CanvasComponent implements OnInit {
       this.drawSmallDeviceWarning();
       return;
     }
-    addBGPicture(
+    addBGObject(
       this.startImage,
       0,
       0,
@@ -307,7 +321,7 @@ export class CanvasComponent implements OnInit {
       this.context,
       this.bg_elements
     );
-    addBGPicture(
+    addBGObject(
       this.startGuideImg,
       0,
       0,
@@ -321,7 +335,7 @@ export class CanvasComponent implements OnInit {
     );
   }
 
-  drawPlayScreens() {
+  drawPlayScreen() {
     this.drawBackgroundPicture();
     this.drawBottles();
     this.drawChicken();
@@ -411,46 +425,79 @@ export class CanvasComponent implements OnInit {
 
   drawThrowBottle() {
     if (this.CanvasThrowBottle) {
-      this.addBGPicture(
-        this.CanvasThrowBottle.getImg(),
+      let img = this.CanvasThrowBottle.getImg();
+      let scaleX = getAdjustedScalingFactor(
+        this.CanvasThrowBottle.getScale(),
+        scalingFactorAdjustment.x_ScalingAdjustment
+      );
+      let scaleY = getAdjustedScalingFactor(
+        this.CanvasThrowBottle.getScale(),
+        scalingFactorAdjustment.y_ScalingAdjustment
+      );
+      addBGObject(
+        img,
         this.CanvasThrowBottle.getCurrentXPosition(0),
         this.CanvasThrowBottle.getUpperImgBorder(),
-        this.CanvasThrowBottle.getImgWidth(),
-        this.CanvasThrowBottle.getImgHeight(),
-        this.CanvasThrowBottle.getScale(),
-        this.CanvasThrowBottle.getOpacity()
+        img.width,
+        img.height,
+        scaleX,
+        scaleY,
+        1,
+        this.context,
+        this.bg_elements
       );
     }
   }
 
   drawEndBoss() {
-    this.addBgObject(
-      this.CanvasEndboss.getImgSrc(),
+    this.drawEndbossImg();
+    if (!this.CanvasEndboss.getDefeatedAt()) {
+      this.drawEndbossLiveBar();
+    }
+  }
+
+  drawEndbossImg() {
+    let endbossImg = this.CanvasEndboss.getImg();
+    let scaleX = getAdjustedScalingFactor(
+      this.CanvasEndboss.getScale(),
+      scalingFactorAdjustment.x_ScalingAdjustment
+    );
+    let scaleY = getAdjustedScalingFactor(
+      this.CanvasEndboss.getScale(),
+      scalingFactorAdjustment.y_ScalingAdjustment
+    );
+    addBGObject(
+      endbossImg,
       this.CanvasEndboss.getLeftImgBorder(),
       this.CanvasEndboss.getUpperImgBorder(),
-      this.CanvasEndboss.getScale(),
-      1
+      endbossImg.width,
+      endbossImg.height,
+      scaleX,
+      scaleY,
+      1,
+      this.context,
+      this.bg_elements
+    );
+  }
+
+  drawEndbossLiveBar() {
+    this.context.globalAlpha = 0.3;
+    this.context.fillStyle = 'red';
+    this.context.fillRect(
+      this.CanvasEndboss.getCurrentXPosition(),
+      this.CanvasEndboss.getUpperImgBorder() + 35,
+      2 * this.CanvasEndboss.getLive(),
+      15
     );
 
-    if (!this.CanvasEndboss.getDefeatedAt()) {
-      this.context.globalAlpha = 0.3;
-      this.context.fillStyle = 'red';
-      this.context.fillRect(
-        this.CanvasEndboss.getCurrentXPosition(),
-        this.CanvasEndboss.getUpperImgBorder() + 35,
-        2 * this.CanvasEndboss.getLive(),
-        15
-      );
-
-      this.context.fillStyle = 'black';
-      this.context.fillRect(
-        this.CanvasEndboss.getCurrentXPosition() - 5,
-        this.CanvasEndboss.getUpperImgBorder() + 30,
-        210,
-        25
-      );
-      this.context.globalAlpha = 1;
-    }
+    this.context.fillStyle = 'black';
+    this.context.fillRect(
+      this.CanvasEndboss.getCurrentXPosition() - 5,
+      this.CanvasEndboss.getUpperImgBorder() + 30,
+      210,
+      25
+    );
+    this.context.globalAlpha = 1;
   }
 
   drawWinScreen() {
@@ -486,27 +533,16 @@ export class CanvasComponent implements OnInit {
   }
 
   drawBottles() {
-    bottles.forEach((bottle) => {
-      this.addBgObject(
-        bottle.getImgSrc(),
-        bottle.getLeftImgBorder(),
-        bottle.getUpperImgBorder(),
-        bottle.getScale(),
-        1
-      );
-    });
+    drawObjects(
+      bottles,
+      scalingFactorAdjustment,
+      this.context,
+      this.bg_elements
+    );
   }
 
   drawCoins() {
-    coins.forEach((coin) => {
-      this.addBgObject(
-        coin.getImgSrc(),
-        coin.getLeftImgBorder(),
-        coin.getYPos(),
-        coin.getScale(),
-        coin.getOpacity()
-      );
-    });
+    drawObjects(coins, scalingFactorAdjustment, this.context, this.bg_elements);
   }
 
   checkCollisionDetection() {
@@ -664,18 +700,13 @@ export class CanvasComponent implements OnInit {
   }
 
   drawBackgroundPicture() {
-    for (let i = -3; i < 15; i += 3) {
-      let canvas = this.Canvas.nativeElement;
-      this.addBGPicture(
-        this.background_image,
-        canvas.width * i,
-        0,
-        canvas.width * 3,
-        canvas.height,
-        1,
-        1
-      );
-    }
+    drawBackgroundPictures(
+      this.background_image,
+      this.Canvas.nativeElement.width,
+      this.Canvas.nativeElement.height,
+      this.context,
+      this.bg_elements
+    );
   }
 
   addBgObject(
@@ -753,15 +784,12 @@ export class CanvasComponent implements OnInit {
   }
 
   drawChicken() {
-    chickens.forEach((chicken) => {
-      this.addBgObject(
-        chicken.getImgSrc(),
-        chicken.getLeftImgBorder(),
-        chicken.getUpperImgBorder(),
-        chicken.getScale(),
-        chicken.getOpacity()
-      );
-    });
+    drawObjects(
+      chickens,
+      scalingFactorAdjustment,
+      this.context,
+      this.bg_elements
+    );
   }
 
   @HostListener('document:keydown', ['$event'])

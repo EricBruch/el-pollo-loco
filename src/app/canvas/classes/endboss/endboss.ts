@@ -6,6 +6,7 @@ import {
   IMG_SRCs,
   SCALING_FACTOR,
 } from '../../constants';
+import { ImageCacheService } from 'src/app/services/image-cache.service';
 
 export class Endboss {
   private live: number;
@@ -24,10 +25,12 @@ export class Endboss {
   private xPos: number;
   private yPos: number;
   private CanvasComponent: CanvasComponent;
-  private img: HTMLImageElement;
   private scale: number;
 
-  constructor(canvas: CanvasComponent) {
+  constructor(
+    canvas: CanvasComponent,
+    private ImageCacheService: ImageCacheService
+  ) {
     this.live = 100;
     this.defeatedAt = 0;
     this.lastHitTakenAt = 0;
@@ -42,14 +45,11 @@ export class Endboss {
     this.moveLeft = true;
     this.imgSrc = IMG_SRCs.giantGallinitaWalk[0];
     this.CanvasComponent = canvas;
-    this.img = new Image();
-    this.img.src = this.imgSrc;
     this.scale = SCALING_FACTOR.endboss;
     this.xPos = BOSS_X_START;
     let intvID = setInterval(() => {
       this.setYPosWhenCanvasDefined(intvID);
     });
-
   }
 
   public getScale(): number {
@@ -62,7 +62,7 @@ export class Endboss {
 
   private setYPosWhenCanvasDefined(intvID: number): void {
     if (canvasSize.height && canvasSize.width) {
-      this.yPos = canvasSize.height * 0.40;
+      this.yPos = canvasSize.height * 0.4;
       clearInterval(intvID);
     }
   }
@@ -75,26 +75,35 @@ export class Endboss {
   }
 
   /**
+   * return the img of this object
+   */
+  public getImg(): HTMLImageElement {
+    return this.ImageCacheService.getImgFromCache(this.imgSrc);
+  }
+
+  /**
    * getImgWidth
    */
   public getImgWidth() {
-    return this.img.width * SCALING_FACTOR.endboss;
+    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
+    return img.width * SCALING_FACTOR.coin;
   }
 
   /**
    * getImgHeight
    */
   public getImgHeight() {
-    return this.img.height * SCALING_FACTOR.endboss;
+    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
+    return img.height * SCALING_FACTOR.coin;
   }
 
   /**
    * hitEndboss
    */
   public hitEndboss() {
-      this.live -= 10;
-      this.lastHitTakenAt = new Date().getTime();
-      this.status = ENDBOSS_STATUS.hit;
+    this.live -= 10;
+    this.lastHitTakenAt = new Date().getTime();
+    this.status = ENDBOSS_STATUS.hit;
   }
 
   public getLive(): number {

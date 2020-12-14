@@ -1,10 +1,12 @@
 import { ImageCacheService } from '../../../services/image-cache.service';
-import { canvasSize, IMG_SRCs, IMG_SRC_KEYS, SCALING_FACTOR } from '../../constants';
+import {
+  canvasSize,
+  IMG_SRCs,
+  IMG_SRC_KEYS,
+  SCALING_FACTOR,
+} from '../../constants';
 export class Bottle {
-  constructor(
-    xPos: number,
-    private ImageCacheSerice: ImageCacheService
-  ) {
+  constructor(xPos: number, private ImageCacheService: ImageCacheService) {
     let rnd = Math.round(Math.random() * 2);
     let srcPath = IMG_SRCs[IMG_SRC_KEYS.bottles][rnd];
     this.imgSrc = srcPath;
@@ -31,7 +33,7 @@ export class Bottle {
 
   private setYPosWhenCanvasDefined(intvID: number): void {
     if (canvasSize.height && canvasSize.width) {
-      this.yPos = canvasSize.height * 0.80;
+      this.yPos = canvasSize.height * 0.8;
       clearInterval(intvID);
     }
   }
@@ -72,7 +74,7 @@ export class Bottle {
    * getImgWidth
    */
   public getImgWidth() {
-    let img = this.ImageCacheSerice.getImgFromCache(this.imgSrc);
+    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
     return img.width * this.scale;
   }
 
@@ -80,7 +82,14 @@ export class Bottle {
    * getImgHeight
    */
   public getImgHeight() {
-    let img = this.ImageCacheSerice.getImgFromCache(this.imgSrc);
+    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
     return img.height * this.scale;
+  }
+
+  /**
+   * return the img of this object
+   */
+  public getImg(): HTMLImageElement {
+    return this.ImageCacheService.getImgFromCache(this.imgSrc);
   }
 }

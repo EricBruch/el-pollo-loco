@@ -3,7 +3,6 @@ import {
   IMG_SRCs,
   IMG_SRC_KEYS,
   SCALING_FACTOR,
-  CHAR_Y_START,
   canvasSize,
 } from '../../constants';
 
@@ -45,8 +44,19 @@ export class Coin {
     return this.xPos;
   }
 
+  public getUpperImgBorder(): number {
+    return this.yPos;
+  }
+
   public getImgNr(): number {
     return this.imgNr;
+  }
+
+  /**
+   * return the img of this object
+   */
+  public getImg(): HTMLImageElement {
+    return this.ImageCacheService.getImgFromCache(this.imgSrc);
   }
 
   public adjustImgNr(): void {

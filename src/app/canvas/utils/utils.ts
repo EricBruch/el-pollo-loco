@@ -1,5 +1,7 @@
+import { Bottle } from '../classes/bottle/bottle';
+import { scalingFactorAdjustment } from '../objects';
 import { canvasBaseSizes } from '../types/canvasBaseSizes.type';
-import { scalingFactorAdjustment } from '../types/scalingFactorAdjustment.type';
+import { scalingFactorAdjustmentType } from '../types/scalingFactorAdjustment.type';
 
 /**
  * Sets the Adjustment factor for the scaling of pictures for Scaling on
@@ -13,7 +15,7 @@ export function setScalingAdjustment(
   canvasWidth: number,
   canvasHeight: number,
   canvasBaseSizes: canvasBaseSizes,
-  scalingFactorAdjustment: scalingFactorAdjustment
+  scalingFactorAdjustment: scalingFactorAdjustmentType
 ) {
   scalingFactorAdjustment.x_ScalingAdjustment =
     canvasWidth / canvasBaseSizes.width;
@@ -32,8 +34,9 @@ export function setScalingAdjustment(
  * @param scaleY  -Scaling factor for y-axis
  * @param opacity -Opactiy level of the img
  * @param context -The context to draw the img
+ * @param bg_elements -The position of BG elements
  */
-export function addBGPicture(
+export function addBGObject(
   img: HTMLImageElement,
   offset_x: number,
   offset_y: number,
@@ -57,6 +60,7 @@ export function addBGPicture(
   );
   context.globalAlpha = 1;
 }
+
 /**
  * returns the adjusted scaling Factor
  * @param scalingFactor scaling factor of the object
@@ -67,4 +71,66 @@ export function getAdjustedScalingFactor(
   scalingFactorAdjustment: number
 ): number {
   return scalingFactor * scalingFactorAdjustment;
+}
+
+/**
+ * Draws all background Images to the background
+ * @param img Img to be drawn continously
+ * @param canvasWidth Width of the screen
+ * @param canvasHeight Height of the screen
+ * @param context The Context to draw the background
+ * @param bg_elements Position of background elements
+ */
+export function drawBackgroundPictures(
+  img: HTMLImageElement,
+  canvasWidth: number,
+  canvasHeight: number,
+  context: CanvasRenderingContext2D,
+  bg_elements: number
+) {
+  for (let i = -3; i < 15; i += 3) {
+    addBGObject(
+      img,
+      canvasWidth * i,
+      0,
+      canvasWidth * 3,
+      canvasHeight,
+      1,
+      1,
+      1,
+      context,
+      bg_elements
+    );
+  }
+}
+
+export function drawObjects(
+  objects: any[],
+  scalingFactorAdjustment: scalingFactorAdjustmentType,
+  context: CanvasRenderingContext2D,
+  bg_elements: number
+) {
+  objects.forEach((object) => {
+    let scaleX = getAdjustedScalingFactor(
+      object.getScale(),
+      scalingFactorAdjustment.x_ScalingAdjustment
+    );
+    let scaleY = getAdjustedScalingFactor(
+      object.getScale(),
+      scalingFactorAdjustment.y_ScalingAdjustment
+    );
+    let img = object.getImg();
+    addBGObject(
+      img,
+      object.getLeftImgBorder(),
+      object.getUpperImgBorder(),
+      img.width,
+      img.height,
+      scaleX,
+      scaleY,
+      1,
+      context,
+      bg_elements
+    );
+  });
 }

@@ -1,7 +1,7 @@
 import { Bottle } from './classes/bottle/bottle';
 import { Chicken } from './classes/chicken/chicken';
 import { Coin } from './classes/coin/coin';
-import { scalingFactorAdjustment as scalingFactorAdjustmentType } from "src/app/canvas/types/scalingFactorAdjustment.type";
+import { scalingFactorAdjustmentType } from 'src/app/canvas/types/scalingFactorAdjustment.type';
 
 export let imgCache: HTMLImageElement[] = [];
 

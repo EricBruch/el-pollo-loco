@@ -5,6 +5,7 @@ import {
   IMG_SRC_KEYS,
   SCALING_FACTOR,
 } from '../../constants';
+
 export class Bottle {
   constructor(xPos: number, private ImageCacheService: ImageCacheService) {
     let rnd = Math.round(Math.random() * 2);

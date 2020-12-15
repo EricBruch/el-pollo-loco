@@ -17,8 +17,14 @@ import {
   CHAR_COLL_BOTTLES,
 } from './../../constants';
 import { ImageCacheService } from '../../../services/image-cache.service';
-import { bottles, coins, imgCache, scalingFactorAdjustment } from '../../objects';
+import {
+  bottles,
+  coins,
+  imgCache,
+  scalingFactorAdjustment,
+} from '../../objects';
 import { getAdjustedScalingFactor } from '../../utils/utils';
+import { CanvasComponent } from '../../canvas.component';
 
 export class MainCharacter {
   private xPos: number;
@@ -49,10 +55,13 @@ export class MainCharacter {
   private jumpImg: number;
   private hitImg: number;
   private deadImg: number;
-  private canvasComponent;
+  private canvasComponent: CanvasComponent;
   private scale: number;
 
-  constructor(component, private ImageCacheService: ImageCacheService) {
+  constructor(
+    component: CanvasComponent,
+    private ImageCacheService: ImageCacheService
+  ) {
     this.canvasComponent = component;
     this.lives = CHARACTER_LIVES;
     this.isIdle = false;
@@ -93,7 +102,7 @@ export class MainCharacter {
     let scaleX = getAdjustedScalingFactor(
       SCALING_FACTOR.throwBottle,
       scalingFactorAdjustment.x_ScalingAdjustment
-    )
+    );
     return this.xPos - this.canvasComponent.bg_elements + 450 * scaleX;
   }
 
@@ -111,6 +120,7 @@ export class MainCharacter {
   public getYThrowPosition(): number {
     return this.yPos + canvasSize.height * 0.21;
   }
+
   /**
    * getLeftImgBorder
    */
@@ -156,11 +166,11 @@ export class MainCharacter {
     this.collBottles++;
     bottles.splice(i, 1);
   }
-  public setX_coordinate(xPos: number): void {
+  public set_xPos(xPos: number): void {
     this.xPos = xPos;
   }
 
-  public setY_coordinate(yPos: number): void {
+  public set_yPos(yPos: number): void {
     this.yPos = yPos;
   }
 

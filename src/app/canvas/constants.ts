@@ -76,7 +76,7 @@ export const CHICKEN_START_X_COORD = [
   2000,
   2500,
   3000,
-/*   3700,
+  3700,
   4000,
   4500,
   5000,
@@ -84,12 +84,12 @@ export const CHICKEN_START_X_COORD = [
   6000,
   6500,
   7000,
-  7500, */
+  7500,
 ];
 export const COINS_START_X_COORD = [
   600,
   800,
-/*   1200,
+  1200,
   1800,
   2000,
   2200,
@@ -106,7 +106,7 @@ export const COINS_START_X_COORD = [
   5500,
   5800,
   6000,
-  6500, */
+  6500,
 
 ];
 
@@ -117,7 +117,7 @@ export const BOTTLE_START_X_COORD = [
   1100,
   1300,
   1500,
-/*   1700,
+  1700,
   1900,
   2500,
   2800,
@@ -130,7 +130,7 @@ export const BOTTLE_START_X_COORD = [
   5400,
   5800,
   6000,
-  6200, */
+  6200,
 ];
 
 //############################# Audio Sounds ############################

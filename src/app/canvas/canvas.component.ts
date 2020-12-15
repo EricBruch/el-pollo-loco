@@ -146,7 +146,7 @@ export class CanvasComponent implements OnInit {
       if (this.gameStarted && !this.charLostAt) {
         this.CanvasMainCharacter.updateRunningState();
       }
-    }, 20);
+    }, 30);
   }
 
   checkForJump() {
@@ -154,13 +154,13 @@ export class CanvasComponent implements OnInit {
       if (this.CanvasMainCharacter.isInJumpProcess()) {
         this.CanvasMainCharacter.updateJumpCharacter();
       }
-    }, 10);
+    }, 20);
   }
 
   checkForIdle() {
     setInterval(() => {
       this.CanvasMainCharacter.checkCharacterIdle();
-    }, 30);
+    }, 120);
   }
 
   checkAnimationCharacter() {
@@ -174,13 +174,13 @@ export class CanvasComponent implements OnInit {
   checkCharacterHit(): void {
     setInterval(() => {
       this.CanvasMainCharacter.updateCharacterHit();
-    }, 30);
+    }, 120);
   }
 
   checkCharacterDead() {
     setInterval(() => {
       this.CanvasMainCharacter.updateCharacterDead();
-    }, 30);
+    }, 120);
   }
 
   checkThrowBottTouchGround() {
@@ -205,7 +205,7 @@ export class CanvasComponent implements OnInit {
   checkAnimationEndboss() {
     setInterval(() => {
       this.CanvasEndboss.updateEndboss();
-    }, 30);
+    }, 80);
   }
 
   checkForCoinAnimation() {
@@ -213,7 +213,7 @@ export class CanvasComponent implements OnInit {
       coins.forEach((coin) => {
         coin.adjustImgNr();
       });
-    }, 100);
+    }, 200);
   }
 
   /**
@@ -404,7 +404,7 @@ export class CanvasComponent implements OnInit {
       if (this.CanvasThrowBottle) {
         this.updateThrowBottle();
       }
-    }, 10);
+    }, 80);
   }
 
   updateThrowBottle() {
@@ -553,7 +553,7 @@ export class CanvasComponent implements OnInit {
       this.checkCollisionTabasco();
       this.checkCollisionEndboss();
       this.checkCollisionCoins();
-    }, 30);
+    }, 350);
   }
 
   checkCollisionChicken() {
@@ -698,7 +698,7 @@ export class CanvasComponent implements OnInit {
           chicken.moveChicken();
         });
       }
-    }, 200);
+    }, 250);
   }
 
   drawBackgroundPicture() {

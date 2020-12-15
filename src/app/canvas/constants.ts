@@ -11,7 +11,7 @@ export const CHAR_COLL_BOTTLES = 10;
 export const CHAR_X_POS = 100; // in px
 export const CHAR_Y_START = 260; // in px
 
-export const BOSS_X_START = 6000;
+export const BOSS_X_START = 8000;
 
 export const GRAVITY = 9.81;
 export const LEFT_BORDER = 100;
@@ -73,41 +73,64 @@ export enum IMG_SRC_KEYS {
 }
 
 export const CHICKEN_START_X_COORD = [
-  1000,
-  1600,
   2000,
   2500,
   3000,
-  3600,
-  3800,
-  4200,
+/*   3700,
+  4000,
   4500,
   5000,
+  5500,
+  6000,
+  6500,
+  7000,
+  7500, */
 ];
 export const COINS_START_X_COORD = [
   600,
   800,
-  1200,
+/*   1200,
   1800,
-  1900,
   2000,
-  2100,
+  2200,
   2500,
-  2600,
+  2700,
+  3000,
+  3200,
+  3700,
   4000,
+  4200,
+  4500,
+  4900,
+  5300,
+  5500,
+  5800,
+  6000,
+  6500, */
+
 ];
 
 export const BOTTLE_START_X_COORD = [
   500,
-  1000,
+  700,
+  900,
   1100,
-  1200,
-  1700,
-  2000,
+  1300,
+  1500,
+/*   1700,
+  1900,
   2500,
   2800,
   3000,
-  3300,
+  3800,
+  4000,
+  4300,
+  4600,
+  5000,
+  5400,
+  5800,
+  6000,
+  6200, */
 ];
 
 //############################# Audio Sounds ############################

@@ -19,13 +19,7 @@ export class Chicken {
 
   constructor(xCoordinate: number, ImageCacheService: ImageCacheService) {
     this.imgNr = 0;
-    if (Math.round(Math.random()) === 0) {
-      this.imgSrc = IMG_SRCs.gallinitaWalk[0];
-      this.pollito = false;
-    } else {
-      this.imgSrc = IMG_SRCs.pollitoWALK[0];
-      this.pollito = true;
-    }
+    this.chooseRandomChickenType();
     this.scale = SCALING_FACTOR.chicken;
     this.opacity = 1;
     this.speed = Math.random() * 15;
@@ -34,6 +28,16 @@ export class Chicken {
     let intvID = setInterval(() => {
       this.setYPosWhenCanvasDefined(intvID);
     });
+  }
+
+  private chooseRandomChickenType() {
+    if (Math.round(Math.random()) === 0) {
+      this.imgSrc = IMG_SRCs.gallinitaWalk[0];
+      this.pollito = false;
+    } else {
+      this.imgSrc = IMG_SRCs.pollitoWALK[0];
+      this.pollito = true;
+    }
   }
 
   public getImgSrc(): string {
@@ -50,7 +54,7 @@ export class Chicken {
 
   private setYPosWhenCanvasDefined(intvID: number): void {
     if (canvasSize.height && canvasSize.width) {
-      this.yPos = canvasSize.height * 0.83;
+      this.yPos = canvasSize.height * 0.85;
       clearInterval(intvID);
     }
   }

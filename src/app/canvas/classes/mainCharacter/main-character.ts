@@ -17,7 +17,8 @@ import {
   CHAR_COLL_BOTTLES,
 } from './../../constants';
 import { ImageCacheService } from '../../../services/image-cache.service';
-import { bottles, coins, imgCache } from '../../objects';
+import { bottles, coins, imgCache, scalingFactorAdjustment } from '../../objects';
+import { getAdjustedScalingFactor } from '../../utils/utils';
 
 export class MainCharacter {
   private xPos: number;
@@ -89,7 +90,11 @@ export class MainCharacter {
    * getXThrowPosition
    */
   public getXThrowPosition(): number {
-    return this.xPos - this.canvasComponent.bg_elements + 120;
+    let scaleX = getAdjustedScalingFactor(
+      SCALING_FACTOR.throwBottle,
+      scalingFactorAdjustment.x_ScalingAdjustment
+    )
+    return this.xPos - this.canvasComponent.bg_elements + 450 * scaleX;
   }
 
   private setYPosWhenCanvasDefined(intervallID) {
@@ -104,7 +109,7 @@ export class MainCharacter {
    * getYThrowPosition
    */
   public getYThrowPosition(): number {
-    return this.yPos + 250;
+    return this.yPos + canvasSize.height * 0.21;
   }
   /**
    * getLeftImgBorder

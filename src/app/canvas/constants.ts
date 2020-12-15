@@ -6,8 +6,8 @@ export const WALK_SPEED = 7;
 export const IDLE_ANIMATION_SWITCH = 3000; // in ms
 export const IDLE_ANIMATION_START = 5000; // in ms
 export const WALK_ANIMATION_SWITCH = 50; // in ms
-export const CHARACTER_LIVES = 2;
-export const CHAR_COLL_BOTTLES = 0;
+export const CHARACTER_LIVES = 80;
+export const CHAR_COLL_BOTTLES = 10;
 export const CHAR_X_POS = 100; // in px
 export const CHAR_Y_START = 260; // in px
 

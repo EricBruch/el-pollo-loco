@@ -71,6 +71,7 @@ export class CanvasComponent implements OnInit {
   TODOs
   * draw Character function shouln't create a new image each time
   * collision detection variable with %
+  * position of throw bottle
 */
   @ViewChild('canvas')
   Canvas: ElementRef<HTMLCanvasElement>;
@@ -184,8 +185,9 @@ export class CanvasComponent implements OnInit {
 
   checkThrowBottTouchGround() {
     if (
-      this.CanvasThrowBottle.isOnGroundLevel() &&
-      this.CanvasThrowBottle.isThrowing()
+      this.CanvasThrowBottle.isThrowing() &&
+      this.CanvasThrowBottle.isOnGroundLevel()
+      
     ) {
       this.playAudio(AUDIO.SMASH_BOTTLE);
       this.CanvasThrowBottle.setStatus(BOTTLE_STATUS.splash);

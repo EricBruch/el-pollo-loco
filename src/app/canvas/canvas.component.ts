@@ -69,9 +69,15 @@ export class CanvasComponent implements OnInit {
   startGuideImg: HTMLImageElement = new Image();
   /*
   TODOs
-  * draw Character function shouln't create a new image each time
-  * collision detection variable with %
+  * collision detection variable with % of images
   * position of throw bottle
+  * jump function and other interval functions shouldn't be 
+  *   dependent on the intervall time they are called
+  *   (e.g. each time called increase jump hight, in contrast
+  *   to specified time has passed --> increase jump hight)
+  * also implemented in other Intervall functions
+  * Question open Service used inside Model? Is this best practice
+  * 
 */
   @ViewChild('canvas')
   Canvas: ElementRef<HTMLCanvasElement>;

@@ -25,10 +25,9 @@ import {
 } from '../../objects';
 import { getAdjustedScalingFactor } from '../../utils/utils';
 import { CanvasComponent } from '../../canvas.component';
+import { MoveableObject } from '../moveable-object';
 
-export class MainCharacter {
-  private xPos: number;
-  private yPos: number;
+export class MainCharacter extends MoveableObject {
   private yGroundLevel: number;
   public collBottles: number;
   private collCoins: number;
@@ -49,19 +48,18 @@ export class MainCharacter {
   private lastHitHappened: number;
   private lastHitAnimation: number;
   private lastBottleThrowTime: number;
-  private imgSrc: string;
   private idleImg: number;
   private walkImg: number;
   private jumpImg: number;
   private hitImg: number;
   private deadImg: number;
   private canvasComponent: CanvasComponent;
-  private scale: number;
 
   constructor(
     component: CanvasComponent,
-    private ImageCacheService: ImageCacheService
+    public ImageCacheService: ImageCacheService
   ) {
+    super(ImageCacheService);
     this.canvasComponent = component;
     this.lives = CHARACTER_LIVES;
     this.isIdle = false;
@@ -122,36 +120,6 @@ export class MainCharacter {
   }
 
   /**
-   * getLeftImgBorder
-   */
-  public getLeftImgBorder(): number {
-    return this.xPos;
-  }
-
-  /**
-   * getUpperImgBorder
-   */
-  public getUpperImgBorder(): number {
-    return this.yPos;
-  }
-
-  /**
-   * getImgWidth
-   */
-  public getImgWidth(): number {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.width * SCALING_FACTOR.mainChar;
-  }
-
-  /**
-   * getImgHeight
-   */
-  public getImgHeight(): number {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.height * SCALING_FACTOR.mainChar;
-  }
-
-  /**
    * collectCoin
    */
   public collectCoin(i: number) {
@@ -165,13 +133,6 @@ export class MainCharacter {
   public collBottle(i: number) {
     this.collBottles++;
     bottles.splice(i, 1);
-  }
-  public set_xPos(xPos: number): void {
-    this.xPos = xPos;
-  }
-
-  public set_yPos(yPos: number): void {
-    this.yPos = yPos;
   }
 
   public getCollBottles(): number {
@@ -246,14 +207,6 @@ export class MainCharacter {
     return this.lastBottleThrowTime;
   }
 
-  public getImgSrc(): string {
-    return this.imgSrc;
-  }
-
-  public setImgSrc(imgSrc: string): void {
-    this.imgSrc = imgSrc;
-  }
-
   public getIdleImg(): number {
     return this.idleImg;
   }
@@ -299,21 +252,7 @@ export class MainCharacter {
   }
 
   public isRunning(): boolean {
-    return this.isRunningLeft == true || this.isRunningRight == true;
-  }
-
-  /**
-   * getScale
-   */
-  public getScale(): number {
-    return this.scale;
-  }
-
-  /**
-   * return the img of this object
-   */
-  public getImg(): HTMLImageElement {
-    return this.ImageCacheService.getImgFromCache(this.imgSrc);
+    return this.isRunningLeft || this.isRunningRight;
   }
 
   public checkCharacterIdle(): void {

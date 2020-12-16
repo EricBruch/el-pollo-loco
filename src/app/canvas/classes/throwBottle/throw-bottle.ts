@@ -7,14 +7,16 @@ import {
   SCALING_FACTOR,
 } from '../../constants';
 import { ImageCacheService } from '../../../services/image-cache.service';
+import { MoveableObject } from '../moveable-object';
 
-export class ThrowBottle {
+export class ThrowBottle extends MoveableObject {
   constructor(
     xPos: number,
     yPos: number,
     throwTime: number,
-    private ImageCacheService: ImageCacheService
+    public ImageCacheService: ImageCacheService
   ) {
+    super(ImageCacheService);
     this.status = BOTTLE_STATUS.throw;
     this.xStartPos = xPos;
     this.yStartPos = yPos;
@@ -28,33 +30,12 @@ export class ThrowBottle {
     this.opacity = 1;
   }
 
-  private xPos: number;
-  private yPos: number;
   private xStartPos: number;
   private yStartPos: number;
-  private imgSrc: string;
-  private scale: number;
-  private opacity: number;
   private status: string;
   private thrownAt: number;
   private lastAnimationChangeAt: number;
   private ImgNr: number;
-
-  /**
-   * getImgWidth
-   */
-  public getImgWidth(): number {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.width * this.scale;
-  }
-
-  /**
-   * getImgHeight
-   */
-  public getImgHeight(): number {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.height * this.scale;
-  }
 
   /**
    * isOnGroundLevel
@@ -63,51 +44,11 @@ export class ThrowBottle {
     return this.yPos >= canvasSize.yGroundLevel;
   }
 
-  public getOpacity(): number {
-    return this.opacity;
-  }
-
-  public setOpacity(opacity: number): void {
-    this.opacity = opacity;
-  }
-
   /**
    * getCurrentXPosition
    */
   public getCurrentXPosition(bg_elements: number): number {
     return this.xPos + bg_elements;
-  }
-
-  public getLeftImgBorder(): number {
-    return this.xPos;
-  }
-
-  public setXPos(xPos: number): void {
-    this.xPos = xPos;
-  }
-
-  public getUpperImgBorder(): number {
-    return this.yPos;
-  }
-
-  public setYPos(yPos: number): void {
-    this.yPos = yPos;
-  }
-
-  public getImgSrc(): string {
-    return this.imgSrc;
-  }
-
-  public setImgSrc(imgSrc: string): void {
-    this.imgSrc = imgSrc;
-  }
-
-  public getScale(): number {
-    return this.scale;
-  }
-
-  public setScale(scale: number): void {
-    this.scale = scale;
   }
 
   public getStatus(): string {
@@ -161,13 +102,6 @@ export class ThrowBottle {
           break;
       }
     }
-  }
-
-  /**
-   * getImg
-   */
-  public getImg(): HTMLImageElement {
-    return this.ImageCacheService.getImgFromCache(this.imgSrc);
   }
 
   /**

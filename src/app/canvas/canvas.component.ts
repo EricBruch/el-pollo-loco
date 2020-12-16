@@ -404,7 +404,7 @@ export class CanvasComponent implements OnInit {
       if (this.CanvasThrowBottle) {
         this.updateThrowBottle();
       }
-    }, 80);
+    }, 30);
   }
 
   updateThrowBottle() {
@@ -620,7 +620,7 @@ export class CanvasComponent implements OnInit {
         X_COLLISION_ADJUSTMENT.mainCharWithCoin;
       let isHit = this.CollisionService.areObjectsInCollision(
         coin.getCurrentXPosition(this.bg_elements),
-        coin.getYPos(),
+        coin.getUpperImgBorder(),
         coin.getImgWidth() - 0,
         coin.getImgHeight() - 0,
         this.CanvasMainCharacter.getLeftImgBorder(),

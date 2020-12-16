@@ -7,8 +7,9 @@ import {
   SCALING_FACTOR,
 } from '../../constants';
 import { ImageCacheService } from 'src/app/services/image-cache.service';
+import { MoveableObject } from '../moveable-object';
 
-export class Endboss {
+export class Endboss extends MoveableObject {
   private live: number;
   private defeatedAt: number;
   private lastHitTakenAt: number;
@@ -21,16 +22,13 @@ export class Endboss {
   private alertImgNr: number;
   private attackImgNr: number;
   private moveLeft: boolean;
-  private imgSrc: string;
-  private xPos: number;
-  private yPos: number;
   private CanvasComponent: CanvasComponent;
-  private scale: number;
 
   constructor(
     canvas: CanvasComponent,
-    private ImageCacheService: ImageCacheService
+    public ImageCacheService: ImageCacheService
   ) {
+    super(ImageCacheService);
     this.live = 100;
     this.defeatedAt = 0;
     this.lastHitTakenAt = 0;
@@ -52,14 +50,6 @@ export class Endboss {
     });
   }
 
-  public getScale(): number {
-    return this.scale;
-  }
-
-  public setScale(scale: number): void {
-    this.scale = scale;
-  }
-
   private setYPosWhenCanvasDefined(intvID: number): void {
     if (canvasSize.height && canvasSize.width) {
       this.yPos = canvasSize.height * 0.4;
@@ -72,29 +62,6 @@ export class Endboss {
    */
   public getCurrentXPosition() {
     return this.xPos + this.CanvasComponent.bg_elements;
-  }
-
-  /**
-   * return the img of this object
-   */
-  public getImg(): HTMLImageElement {
-    return this.ImageCacheService.getImgFromCache(this.imgSrc);
-  }
-
-  /**
-   * getImgWidth
-   */
-  public getImgWidth() {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.width * SCALING_FACTOR.coin;
-  }
-
-  /**
-   * getImgHeight
-   */
-  public getImgHeight() {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.height * SCALING_FACTOR.coin;
   }
 
   /**
@@ -200,30 +167,6 @@ export class Endboss {
 
   public setMoveLeft(moveLeft: boolean): void {
     this.moveLeft = moveLeft;
-  }
-
-  public getImgSrc(): string {
-    return this.imgSrc;
-  }
-
-  public setImgSrc(imgSrc: string): void {
-    this.imgSrc = imgSrc;
-  }
-
-  public getLeftImgBorder(): number {
-    return this.xPos;
-  }
-
-  public setxPos(xPos: number): void {
-    this.xPos = xPos;
-  }
-
-  public getUpperImgBorder(): number {
-    return this.yPos;
-  }
-
-  public setyPos(yPos: number): void {
-    this.yPos = yPos;
   }
 
   public updateEndboss() {

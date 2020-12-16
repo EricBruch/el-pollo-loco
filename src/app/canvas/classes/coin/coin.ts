@@ -5,19 +5,16 @@ import {
   SCALING_FACTOR,
   canvasSize,
 } from '../../constants';
+import { MoveableObject } from '../moveable-object';
 
-export class Coin {
-  private xPos: number;
-  private yPos: number;
-  private scale: number;
-  private opacity: number;
-  private imgSrc: string;
+export class Coin extends MoveableObject {
   private imgNr: number;
 
   constructor(
     xCoordinate: number,
-    private ImageCacheService: ImageCacheService
+    public ImageCacheService: ImageCacheService
   ) {
+    super(ImageCacheService);
     this.imgNr = Math.round(Math.random());
     let srcPath = this.ImageCacheService.getImgSrcPathByKey(
       'coins',
@@ -32,31 +29,8 @@ export class Coin {
     });
   }
 
-  public getImgSrc(): string {
-    return this.imgSrc;
-  }
-
-  public setImgSrc(imgSrc: string): void {
-    this.imgSrc = imgSrc;
-  }
-
-  public getLeftImgBorder(): number {
-    return this.xPos;
-  }
-
-  public getUpperImgBorder(): number {
-    return this.yPos;
-  }
-
   public getImgNr(): number {
     return this.imgNr;
-  }
-
-  /**
-   * return the img of this object
-   */
-  public getImg(): HTMLImageElement {
-    return this.ImageCacheService.getImgFromCache(this.imgSrc);
   }
 
   public adjustImgNr(): void {
@@ -84,49 +58,5 @@ export class Coin {
 
   public getCurrentXPosition(bg_elements: number): number {
     return this.xPos + bg_elements;
-  }
-
-  public setXPos(xPos: number): void {
-    this.xPos = xPos;
-  }
-
-  public getYPos(): number {
-    return this.yPos;
-  }
-
-  public setYPos(yPos: number): void {
-    this.yPos = yPos;
-  }
-
-  public getScale(): number {
-    return this.scale;
-  }
-
-  public setScale(scale: number): void {
-    this.scale = scale;
-  }
-
-  public getOpacity(): number {
-    return this.opacity;
-  }
-
-  public setOpacity(opacity: number): void {
-    this.opacity = opacity;
-  }
-
-  /**
-   * getImgWidth
-   */
-  public getImgWidth() {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.width * SCALING_FACTOR.coin;
-  }
-
-  /**
-   * getImgHeight
-   */
-  public getImgHeight() {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.height * SCALING_FACTOR.coin;
   }
 }

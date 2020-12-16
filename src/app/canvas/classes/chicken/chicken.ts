@@ -5,19 +5,15 @@ import {
   IMG_SRC_KEYS,
   SCALING_FACTOR,
 } from '../../constants';
+import { MoveableObject } from '../moveable-object';
 
-export class Chicken {
+export class Chicken extends MoveableObject {
   private imgNr: number;
-  private imgSrc: string;
   private pollito: boolean;
-  private xPos: number;
-  private yPos: number;
-  private scale: number;
-  private opacity: number;
   private speed: number;
-  private ImageCacheService: ImageCacheService;
 
   constructor(xCoordinate: number, ImageCacheService: ImageCacheService) {
+    super(ImageCacheService);
     this.imgNr = 0;
     this.chooseRandomChickenType();
     this.scale = SCALING_FACTOR.chicken;
@@ -38,10 +34,6 @@ export class Chicken {
       this.imgSrc = IMG_SRCs.pollitoWALK[0];
       this.pollito = true;
     }
-  }
-
-  public getImgSrc(): string {
-    return this.imgSrc;
   }
 
   public adjustImgNr(): void {
@@ -87,10 +79,6 @@ export class Chicken {
     this.imgNr = imgNr;
   }
 
-  public getLeftImgBorder(): number {
-    return this.xPos;
-  }
-
   public moveChicken(): void {
     this.xPos = this.xPos - this.speed;
   }
@@ -102,61 +90,11 @@ export class Chicken {
     return this.xPos + bg_elements;
   }
 
-  /**
-   * getUpperImgBorder
-   */
-  public getUpperImgBorder() {
-    return this.yPos;
-  }
-
-  public setyPos(yPos: number): void {
-    this.yPos = yPos;
-  }
-
-  public getScale(): number {
-    return this.scale;
-  }
-
-  public setScale(scale: number): void {
-    this.scale = scale;
-  }
-
-  public getOpacity(): number {
-    return this.opacity;
-  }
-
-  public setOpacity(opacity: number): void {
-    this.opacity = opacity;
-  }
-
   public getSpeed(): number {
     return this.speed;
   }
 
   public setSpeed(speed: number): void {
     this.speed = speed;
-  }
-
-  /**
-   * getImgWidth
-   */
-  public getImgWidth(): number {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.width * SCALING_FACTOR.chicken;
-  }
-
-  /**
-   * getImgHeight
-   */
-  public getImgHeight(): number {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.height * SCALING_FACTOR.chicken;
-  }
-
-  /**
-   * getImg
-   */
-  public getImg(): HTMLImageElement {
-    return this.ImageCacheService.getImgFromCache(this.imgSrc);
   }
 }

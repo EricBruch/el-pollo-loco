@@ -1,13 +1,15 @@
-import { ImageCacheService } from '../../../services/image-cache.service';
+import { ImageCacheService } from 'src/app/services/image-cache.service';
 import {
   canvasSize,
   IMG_SRCs,
   IMG_SRC_KEYS,
   SCALING_FACTOR,
 } from '../../constants';
+import { MoveableObject } from '../moveable-object';
 
-export class Bottle {
-  constructor(xPos: number, private ImageCacheService: ImageCacheService) {
+export class Bottle extends MoveableObject {
+  constructor(xPos: number, public ImageCacheService: ImageCacheService) {
+    super(ImageCacheService);
     let rnd = Math.round(Math.random() * 2);
     let srcPath = IMG_SRCs[IMG_SRC_KEYS.bottles][rnd];
     this.imgSrc = srcPath;
@@ -19,11 +21,7 @@ export class Bottle {
     });
   }
 
-  private xPos: number;
-  private yPos: number;
-  private imgSrc: string;
   private type: string;
-  private scale: number;
 
   /**
    * getCurrentXPosition
@@ -39,58 +37,7 @@ export class Bottle {
     }
   }
 
-  public getLeftImgBorder(): number {
-    return this.xPos;
-  }
-
-  public getScale(): SCALING_FACTOR.bottle {
-    return this.scale;
-  }
-
-  public setScale(scale: SCALING_FACTOR.bottle): void {
-    this.scale = scale;
-  }
-
-  public setXPos(xPos: number): void {
-    this.xPos = xPos;
-  }
-
-  public getUpperImgBorder(): number {
-    return this.yPos;
-  }
-
-  public setYPos(yPos: number): void {
-    this.yPos = yPos;
-  }
-
-  public getImgSrc(): string {
-    return this.imgSrc;
-  }
-
   public getType(): string {
     return this.type;
-  }
-
-  /**
-   * getImgWidth
-   */
-  public getImgWidth() {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.width * this.scale;
-  }
-
-  /**
-   * getImgHeight
-   */
-  public getImgHeight() {
-    let img = this.ImageCacheService.getImgFromCache(this.imgSrc);
-    return img.height * this.scale;
-  }
-
-  /**
-   * return the img of this object
-   */
-  public getImg(): HTMLImageElement {
-    return this.ImageCacheService.getImgFromCache(this.imgSrc);
   }
 }

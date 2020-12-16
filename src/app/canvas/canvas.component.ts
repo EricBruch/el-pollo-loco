@@ -154,7 +154,7 @@ export class CanvasComponent implements OnInit {
       if (this.CanvasMainCharacter.isInJumpProcess()) {
         this.CanvasMainCharacter.updateJumpCharacter();
       }
-    }, 20);
+    }, 18);
   }
 
   checkForIdle() {
@@ -205,7 +205,7 @@ export class CanvasComponent implements OnInit {
   checkAnimationEndboss() {
     setInterval(() => {
       this.CanvasEndboss.updateEndboss();
-    }, 80);
+    }, 40);
   }
 
   checkForCoinAnimation() {
